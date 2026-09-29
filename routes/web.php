@@ -1,0 +1,74 @@
+<?php
+
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ReceiptController;
+use App\Http\Controllers\ReceiptDetailController;
+use Illuminate\Support\Facades\Route;
+
+Route::get('/', function () {
+    return redirect()->route('login');
+})->name('welcome');
+
+
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
+
+
+Route::middleware('auth')->group(function () {
+
+    Route::get('/categories', [CategoryController::class, 'index'])
+        ->name('categories.index');
+
+    Route::get('/categories/create', [CategoryController::class, 'create'])
+        ->name('categories.create');
+
+    Route::post('/categories', [CategoryController::class, 'store'])
+        ->name('categories.store');
+
+    Route::get('/categories/{category}/edit', [CategoryController::class, 'edit'])
+        ->name('categories.edit');
+
+    Route::put('/categories/{category}', [CategoryController::class, 'update'])
+        ->name('categories.update');
+
+    Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])
+        ->name('categories.destroy');
+
+    // Receipt
+    Route::get('/receipts', [ReceiptController::class, 'index'])
+        ->name('receipts.index');
+
+    Route::get('/receipts/create', [ReceiptController::class, 'create'])
+        ->name('receipts.create');
+
+    Route::post('/receipts', [ReceiptController::class, 'store'])
+        ->name('receipts.store');
+
+    Route::get('/receipts/{receipt}/edit', [ReceiptController::class, 'edit'])
+        ->name('receipts.edit');
+
+    Route::put('/receipts/{receipt}', [ReceiptController::class, 'update'])
+        ->name('receipts.update');
+
+    Route::delete('/receipts/{receipt}', [ReceiptController::class, 'destroy'])
+        ->name('receipts.destroy');
+
+    Route::get('/receipts/{receipt}/details', [ReceiptDetailController::class, 'create'])
+        ->name('receipts.details');
+
+    Route::post('/receipts/{receipt}/details', [ReceiptDetailController::class, 'store'])
+        ->name('receipts.details.store');
+
+    Route::get('/receipts/{receipt}/view', [ReceiptDetailController::class, 'show'])
+        ->name('receipts.view');
+
+    Route::get('/receipts/{receipt}/download-pdf',
+        [ReceiptController::class, 'downloadPdf']
+    )->name('receipts.download-pdf');
+
+
+});
+
+require __DIR__.'/auth.php';
