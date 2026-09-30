@@ -43,6 +43,7 @@ class ReceiptController extends Controller
             'mobile' => $request->mobile,
             'address' => $request->address,
             'date' => now()->toDateString(),
+            'receipt_type' => 'walk_in'
         ]);
 
         return redirect()

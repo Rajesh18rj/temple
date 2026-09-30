@@ -4,10 +4,11 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ReceiptController;
 use App\Http\Controllers\ReceiptDetailController;
+use App\Http\Controllers\RegisterReceiptController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return redirect()->route('login');
+    return redirect()->route('register-receipts.create');
 })->name('welcome');
 
 
@@ -70,5 +71,20 @@ Route::middleware('auth')->group(function () {
 
 
 });
+
+Route::get('/register-receipt', [RegisterReceiptController::class, 'create'])
+    ->name('register-receipts.create');
+
+Route::post('/register-receipt', [RegisterReceiptController::class, 'store'])
+    ->name('register-receipts.store');
+
+Route::get('/register-receipt/payment/{receipt}', [RegisterReceiptController::class, 'payment'])
+    ->name('register-receipts.payment');
+
+Route::post('/register-receipt/payment/{receipt}', [RegisterReceiptController::class, 'paymentStore'])
+    ->name('register-receipts.payment.store');
+
+Route::get('/register-receipt/success/{receipt}', [RegisterReceiptController::class, 'success'])
+    ->name('register-receipts.success');
 
 require __DIR__.'/auth.php';

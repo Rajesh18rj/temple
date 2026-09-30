@@ -280,6 +280,7 @@
         ========================================================== --}}
         <form action="{{ route('receipts.details.store', $receipt) }}"
               method="POST"
+              enctype="multipart/form-data"
               id="receiptDetailsForm">
 
             @csrf
@@ -595,6 +596,158 @@
 
                 </div>
 
+                {{-- =================================================
+     PAYMENT PROOF
+================================================== --}}
+
+                <div class="px-6 sm:px-8 py-6 border-t border-purple-50">
+
+                    <div class="mb-5">
+
+                        <div class="flex items-center gap-3">
+
+                            <div class="w-10 h-10
+                        rounded-xl
+                        bg-emerald-50
+                        flex items-center justify-center">
+
+                                <svg class="w-5 h-5 text-emerald-600"
+                                     fill="none"
+                                     stroke="currentColor"
+                                     viewBox="0 0 24 24">
+
+                                    <path stroke-linecap="round"
+                                          stroke-linejoin="round"
+                                          stroke-width="1.8"
+                                          d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/>
+
+                                    <path stroke-linecap="round"
+                                          stroke-linejoin="round"
+                                          stroke-width="1.8"
+                                          d="M12 11v6m0 0l-2.5-2.5M12 17l2.5-2.5"/>
+
+                                </svg>
+
+                            </div>
+
+                            <div>
+
+                                <h2 class="text-base font-bold text-[#18213d]">
+                                    Payment Proof
+                                </h2>
+
+                                <p class="text-xs text-slate-400 mt-0.5">
+                                    Upload the payment screenshot or receipt
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    {{-- Upload Box --}}
+
+                    <label
+                        for="paymentProof"
+                        class="block cursor-pointer"
+                    >
+
+                        <div
+                            id="paymentUploadBox"
+                            class="rounded-2xl
+                   border-2 border-dashed
+                   border-slate-200
+                   bg-slate-50
+                   px-5 py-10
+                   text-center
+                   transition-all
+                   hover:border-emerald-300
+                   hover:bg-emerald-50/30"
+                        >
+
+                            <input
+                                type="file"
+                                name="image"
+                                id="paymentProof"
+                                accept=".jpg,.jpeg,.png,.webp,image/*"
+                                class="hidden"
+                            >
+
+
+                            {{-- Upload Icon --}}
+
+                            <div class="mx-auto flex h-14 w-14
+                        items-center justify-center
+                        rounded-2xl
+                        bg-white
+                        text-slate-400
+                        shadow-sm">
+
+                                <svg class="h-6 w-6"
+                                     fill="none"
+                                     stroke="currentColor"
+                                     viewBox="0 0 24 24">
+
+                                    <path stroke-linecap="round"
+                                          stroke-linejoin="round"
+                                          stroke-width="1.8"
+                                          d="M12 16V4m0 0L8 8m4-4l4 4"/>
+
+                                    <path stroke-linecap="round"
+                                          stroke-linejoin="round"
+                                          stroke-width="1.8"
+                                          d="M5 12v6a2 2 0 002 2h10a2 2 0 002-2v-6"/>
+
+                                </svg>
+
+                            </div>
+
+
+                            {{-- Text --}}
+
+                            <p class="mt-4 text-sm font-semibold text-slate-700">
+
+                                Click to upload payment proof
+
+                            </p>
+
+
+                            <p class="mt-1 text-xs text-slate-400">
+
+                                JPG, JPEG, PNG or WEBP · Maximum 2 MB
+
+                            </p>
+
+
+                            {{-- Selected File --}}
+
+                            <p
+                                id="paymentFileName"
+                                class="mt-3 hidden rounded-lg
+                       bg-emerald-50
+                       px-3 py-1.5
+                       text-xs font-medium
+                       text-emerald-600"
+                            >
+                            </p>
+
+                        </div>
+
+                    </label>
+
+
+                    @error('image')
+
+                    <p class="mt-2 text-xs font-medium text-red-600">
+                        {{ $message }}
+                    </p>
+
+                    @enderror
+
+                </div>
+
 
                 {{-- =================================================
                      TOTAL
@@ -856,6 +1009,50 @@
                 });
 
         });
+
+        /*
+|--------------------------------------------------------------------------
+| Payment Proof File Selection
+|--------------------------------------------------------------------------
+*/
+
+        const paymentProof = document.getElementById('paymentProof');
+        const paymentFileName = document.getElementById('paymentFileName');
+        const paymentUploadBox = document.getElementById('paymentUploadBox');
+
+        if (paymentProof) {
+
+            paymentProof.addEventListener('change', function () {
+
+                if (this.files && this.files.length > 0) {
+
+                    const file = this.files[0];
+
+                    paymentFileName.textContent = 'Selected: ' + file.name;
+
+                    paymentFileName.classList.remove('hidden');
+
+                    paymentUploadBox.classList.add(
+                        'border-emerald-300',
+                        'bg-emerald-50/30'
+                    );
+
+                } else {
+
+                    paymentFileName.textContent = '';
+
+                    paymentFileName.classList.add('hidden');
+
+                    paymentUploadBox.classList.remove(
+                        'border-emerald-300',
+                        'bg-emerald-50/30'
+                    );
+
+                }
+
+            });
+
+        }
 
     </script>
 

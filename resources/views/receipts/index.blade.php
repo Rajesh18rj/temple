@@ -180,6 +180,16 @@
                         </th>
 
                         <th class="px-5 py-3
+                                   text-left
+                                   text-xs
+                                   font-semibold
+                                   uppercase
+                                   tracking-wide
+                                   text-slate-500">
+                            Type
+                        </th>
+
+                        <th class="px-5 py-3
                                    text-right
                                    text-xs
                                    font-semibold
@@ -271,8 +281,45 @@
 
                             </td>
 
+                            {{-- Type --}}
+                            <td class="px-5 py-4">
 
-                            {{-- Action --}}
+                                @if($receipt->receipt_type === 'walk_in')
+
+                                    <span class="inline-flex items-center gap-1.5
+                     rounded-full
+                     bg-emerald-50
+                     px-2.5 py-1
+                     text-xs
+                     font-semibold
+                     text-emerald-600">
+
+            <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+
+            Walk-in
+
+        </span>
+
+                                @else
+
+                                    <span class="inline-flex items-center gap-1.5
+                     rounded-full
+                     bg-violet-50
+                     px-2.5 py-1
+                     text-xs
+                     font-semibold
+                     text-violet-600">
+
+            <span class="h-1.5 w-1.5 rounded-full bg-violet-500"></span>
+
+            Registered
+
+        </span>
+
+                                @endif
+
+                            </td>
+
                             {{-- Actions --}}
                             <td class="px-5 py-4">
 

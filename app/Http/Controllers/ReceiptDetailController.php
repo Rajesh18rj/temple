@@ -29,11 +29,20 @@ class ReceiptDetailController extends Controller
         $request->validate([
             'categories' => 'required|array|min:1',
             'categories.*' => 'exists:categories,id',
+
             'amounts' => 'nullable|array',
             'amounts.*' => 'nullable|numeric|min:0.01',
+
+            // Payment Proof
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
-        // Check manual amount categories BEFORE transaction
+        /*
+        |--------------------------------------------------------------------------
+        | Check Manual Amount Categories
+        |--------------------------------------------------------------------------
+        */
+
         foreach ($request->categories as $categoryId) {
 
             $category = Category::findOrFail($categoryId);
@@ -45,28 +54,44 @@ class ReceiptDetailController extends Controller
                 if ($amount === null || $amount <= 0) {
                     return back()
                         ->withInput()
-                        ->with('error', "Please enter an amount for {$category->name}.");
+                        ->with(
+                            'error',
+                            "Please enter an amount for {$category->name}."
+                        );
                 }
             }
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Save Receipt Details + Payment Proof
+        |--------------------------------------------------------------------------
+        */
+
         DB::transaction(function () use ($request, $receipt) {
 
-            // Remove old details if this receipt is being edited later
+            // Upload payment proof only if provided
+            if ($request->hasFile('image')) {
+
+                $imagePath = $request->file('image')
+                    ->store('receipts', 'public');
+
+                $receipt->update([
+                    'image' => $imagePath,
+                ]);
+            }
+
+            // Remove old details
             $receipt->receiptDetails()->delete();
 
+            // Save selected categories
             foreach ($request->categories as $categoryId) {
 
                 $category = Category::findOrFail($categoryId);
 
-                // Fixed amount from category master
                 if ($category->amount !== null) {
-
                     $amount = $category->amount;
-
                 } else {
-
-                    // Manual amount
                     $amount = $request->input("amounts.$categoryId");
                 }
 
@@ -80,6 +105,9 @@ class ReceiptDetailController extends Controller
 
         return redirect()
             ->route('receipts.index')
-            ->with('success', 'Receipt details saved successfully.');
+            ->with(
+                'success',
+                'Receipt details and payment proof saved successfully.'
+            );
     }
 }
