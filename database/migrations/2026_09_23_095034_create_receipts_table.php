@@ -17,6 +17,15 @@ return new class extends Migration
             $table->string('image')->nullable();
             $table->string('mobile', 20)->nullable();
             $table->text('address')->nullable();
+            $table->foreignId('city_id')
+                ->nullable()
+                ->constrained('cities')
+                ->nullOnDelete();
+            // Receipt Type
+            $table->enum('receipt_type', [
+                'registered',
+                'walk_in',
+            ])->default('registered');
             $table->date('date');
             $table->timestamps();
         });

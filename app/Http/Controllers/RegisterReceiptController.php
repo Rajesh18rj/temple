@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Models\City;
 use App\Models\Receipt;
 use App\Models\ReceiptDetail;
 use Illuminate\Http\Request;
@@ -19,7 +20,14 @@ class RegisterReceiptController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('register-receipts.create', compact('categories'));
+        $cities = City::where('status', true)
+            ->orderBy('name')
+            ->get();
+
+        return view(
+            'register-receipts.create',
+            compact('categories', 'cities')
+        );
     }
 
 
@@ -32,6 +40,8 @@ class RegisterReceiptController extends Controller
             'name' => 'required|string|max:255',
             'mobile' => 'nullable|string|max:20',
             'address' => 'nullable|string',
+
+            'city_id' => 'required|exists:cities,id',
 
             'categories' => 'required|array|min:1',
             'categories.*' => 'exists:categories,id',
@@ -81,6 +91,10 @@ class RegisterReceiptController extends Controller
                 'image' => null,
                 'mobile' => $request->mobile,
                 'address' => $request->address,
+
+                // City
+                'city_id' => $request->city_id,
+
                 'date' => now()->toDateString(),
 
                 // Public registration
@@ -105,6 +119,7 @@ class RegisterReceiptController extends Controller
                     );
                 }
 
+
                 ReceiptDetail::create([
                     'receipt_id' => $receipt->id,
                     'category_id' => $category->id,
@@ -125,7 +140,10 @@ class RegisterReceiptController extends Controller
 
         return redirect()
             ->route('register-receipts.payment', $receipt)
-            ->with('success', 'Registration details saved successfully.');
+            ->with(
+                'success',
+                'Registration details saved successfully.'
+            );
     }
 
 
@@ -201,7 +219,10 @@ class RegisterReceiptController extends Controller
 
         return redirect()
             ->route('register-receipts.success', $receipt)
-            ->with('success', 'Payment proof submitted successfully.');
+            ->with(
+                'success',
+                'Payment proof submitted successfully.'
+            );
     }
 
 

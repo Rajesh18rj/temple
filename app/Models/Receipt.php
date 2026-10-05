@@ -13,13 +13,18 @@ class Receipt extends Model
         'mobile',
         'address',
         'date',
-        'receipt_type'
+        'receipt_type',
+        'city_id',
     ];
 
     protected $casts = [
         'date' => 'date',
     ];
 
+    public function city()
+    {
+        return $this->belongsTo(City::class);
+    }
     public function receiptDetails(): HasMany
     {
         return $this->hasMany(ReceiptDetail::class);

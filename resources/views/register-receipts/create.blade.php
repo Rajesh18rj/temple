@@ -57,7 +57,7 @@
                             <div>
 
                                 <h2 class="text-base font-bold text-slate-900">
-                                    Personal Information
+                                    தனிப்பட்ட தகவல்கள் / Personal Information
                                 </h2>
 
                                 <p class="mt-0.5 text-xs text-slate-400">
@@ -82,7 +82,7 @@
                                 <label for="name"
                                        class="mb-2 block text-sm font-semibold text-slate-700">
 
-                                    Name
+                                    பெயர் / Name
                                     <span class="text-red-500">*</span>
 
                                 </label>
@@ -125,7 +125,7 @@
                                 <label for="mobile"
                                        class="mb-2 block text-sm font-semibold text-slate-700">
 
-                                    Mobile Number
+                                    கைபேசி எண் / Mobile Number
 
                                 </label>
 
@@ -167,7 +167,7 @@
                                 <label for="address"
                                        class="mb-2 block text-sm font-semibold text-slate-700">
 
-                                    Address
+                                    முகவரி / Address
 
                                 </label>
 
@@ -201,6 +201,39 @@
 
                             </div>
 
+                            <div>
+                                <label
+                                    for="city_id"
+                                    class="mb-2 block text-sm font-semibold text-slate-700"
+                                >
+                                    ஊர் / City
+                                </label>
+
+                                <select
+                                    name="city_id"
+                                    id="city_id"
+                                    required
+                                    class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                                >
+                                    <option value="">Select City</option>
+
+                                    @foreach($cities as $city)
+                                        <option
+                                            value="{{ $city->id }}"
+                                            {{ old('city_id') == $city->id ? 'selected' : '' }}
+                                        >
+                                            {{ $city->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+
+                                @error('city_id')
+                                <p class="mt-1 text-xs text-red-500">
+                                    {{ $message }}
+                                </p>
+                                @enderror
+                            </div>
+
                         </div>
 
                     </div>
@@ -232,7 +265,7 @@
                                 <div>
 
                                     <h2 class="text-base font-bold text-slate-900">
-                                        Donation Details
+                                        நன்கொடை விவரங்கள் / Donation Details
                                     </h2>
 
                                     <p class="mt-0.5 text-xs text-slate-400">

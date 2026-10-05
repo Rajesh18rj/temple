@@ -2,9 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\NativePlace;
-use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -16,6 +13,8 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             UserSeeder::class,
+            CitySeeder::class,
+            CategorySeeder::class,
         ]);
     }
 }
