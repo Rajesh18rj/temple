@@ -51,7 +51,6 @@ class RegisterReceiptController extends Controller
 
             $category = Category::findOrFail($categoryId);
 
-            // Category has no fixed amount
             if ($category->amount === null) {
 
                 $amount = $request->input("amounts.$categoryId");
@@ -84,8 +83,7 @@ class RegisterReceiptController extends Controller
                 'address' => $request->address,
                 'date' => now()->toDateString(),
 
-                // Important:
-                // This identifies it as a public/walk-in registration.
+                // Public registration
                 'receipt_type' => 'registered',
             ]);
 
@@ -93,13 +91,6 @@ class RegisterReceiptController extends Controller
             foreach ($request->categories as $categoryId) {
 
                 $category = Category::findOrFail($categoryId);
-
-
-                /*
-                |--------------------------------------------------------------------------
-                | Determine amount
-                |--------------------------------------------------------------------------
-                */
 
                 if ($category->amount !== null) {
 
@@ -113,13 +104,6 @@ class RegisterReceiptController extends Controller
                         "amounts.$categoryId"
                     );
                 }
-
-
-                /*
-                |--------------------------------------------------------------------------
-                | Create receipt detail
-                |--------------------------------------------------------------------------
-                */
 
                 ReceiptDetail::create([
                     'receipt_id' => $receipt->id,
@@ -171,12 +155,31 @@ class RegisterReceiptController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | Store payment proof
+        | Store payment proof directly in public/uploads/receipts
         |--------------------------------------------------------------------------
         */
 
-        $imagePath = $request->file('image')
-            ->store('receipts', 'public');
+        $file = $request->file('image');
+
+        $uploadPath = public_path('uploads/receipts');
+
+        // Create directory if it doesn't exist
+        if (!is_dir($uploadPath)) {
+            mkdir($uploadPath, 0755, true);
+        }
+
+        // Generate unique filename
+        $filename = time()
+            . '_'
+            . uniqid()
+            . '.'
+            . $file->getClientOriginalExtension();
+
+        // Move file directly to public folder
+        $file->move(
+            $uploadPath,
+            $filename
+        );
 
 
         /*
@@ -186,7 +189,7 @@ class RegisterReceiptController extends Controller
         */
 
         $receipt->update([
-            'image' => $imagePath,
+            'image' => 'uploads/receipts/' . $filename,
         ]);
 
 

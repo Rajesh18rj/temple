@@ -415,7 +415,7 @@
                                             overflow-hidden
                                             bg-slate-50">
 
-                                        <img src="{{ asset('storage/' . $receipt->image) }}"
+                                        <img src="{{ asset($receipt->image) }}"
                                              alt="Current payment proof"
                                              class="w-full
                                                 max-h-72

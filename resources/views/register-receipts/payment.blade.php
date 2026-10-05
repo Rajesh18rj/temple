@@ -242,161 +242,21 @@
 
 
                             {{-- =================================================
-                                 BANK + UPI
+                                 UPI PAYMENT
                             ================================================== --}}
 
-                            <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+                            <div class="grid grid-cols-1 gap-5">
 
+                                <div class="rounded-2xl border border-slate-200 bg-white p-5">
 
-                                {{-- =============================================
-                                     BANK DETAILS
-                                ============================================== --}}
-
-                                <div class="rounded-2xl border border-slate-200
-                                        bg-slate-50 p-5">
-
+                                    {{-- Header --}}
                                     <div class="mb-5 flex items-center gap-3">
 
-                                        <div class="flex h-9 w-9 items-center
-                                                justify-center rounded-xl
-                                                bg-white text-slate-500
-                                                shadow-sm">
-
-                                            <i class="fa-solid fa-building-columns"></i>
-
-                                        </div>
-
-
-                                        <div>
-
-                                            <p class="text-sm font-bold text-slate-800">
-                                                Bank Transfer
-                                            </p>
-
-                                            <p class="text-xs text-slate-400">
-                                                Use these details for bank payment
-                                            </p>
-
-                                        </div>
-
-                                    </div>
-
-
-                                    <div class="space-y-4">
-
-
-                                        {{-- BANK NAME --}}
-
-                                        <div>
-
-                                            <p class="text-[11px] font-medium
-                                                  uppercase tracking-wider
-                                                  text-slate-400">
-
-                                                Bank Name
-
-                                            </p>
-
-                                            <p class="mt-1 text-sm font-semibold
-                                                  text-slate-800">
-
-                                                Your Bank Name
-
-                                            </p>
-
-                                        </div>
-
-
-                                        {{-- ACCOUNT NAME --}}
-
-                                        <div>
-
-                                            <p class="text-[11px] font-medium
-                                                  uppercase tracking-wider
-                                                  text-slate-400">
-
-                                                Account Name
-
-                                            </p>
-
-                                            <p class="mt-1 text-sm font-semibold
-                                                  text-slate-800">
-
-                                                Temple Name
-
-                                            </p>
-
-                                        </div>
-
-
-                                        {{-- ACCOUNT NUMBER --}}
-
-                                        <div>
-
-                                            <p class="text-[11px] font-medium
-                                                  uppercase tracking-wider
-                                                  text-slate-400">
-
-                                                Account Number
-
-                                            </p>
-
-                                            <p class="mt-1 break-all text-sm
-                                                  font-semibold text-slate-800">
-
-                                                XXXXXXXXXXXX
-
-                                            </p>
-
-                                        </div>
-
-
-                                        {{-- IFSC --}}
-
-                                        <div>
-
-                                            <p class="text-[11px] font-medium
-                                                  uppercase tracking-wider
-                                                  text-slate-400">
-
-                                                IFSC Code
-
-                                            </p>
-
-                                            <p class="mt-1 text-sm font-semibold
-                                                  text-slate-800">
-
-                                                YOURIFSC0000
-
-                                            </p>
-
-                                        </div>
-
-                                    </div>
-
-                                </div>
-
-
-                                {{-- =============================================
-                                     UPI + QR
-                                ============================================== --}}
-
-                                <div class="rounded-2xl border border-slate-200
-                                        bg-white p-5">
-
-                                    <div class="mb-5 flex items-center gap-3">
-
-                                        <div class="flex h-9 w-9 items-center
-                                                justify-center rounded-xl
-                                                bg-emerald-50 text-emerald-600">
-
+                                        <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
                                             <i class="fa-solid fa-mobile-screen-button"></i>
-
                                         </div>
 
-
                                         <div>
-
                                             <p class="text-sm font-bold text-slate-800">
                                                 UPI Payment
                                             </p>
@@ -404,24 +264,20 @@
                                             <p class="text-xs text-slate-400">
                                                 Scan or use the UPI ID
                                             </p>
-
                                         </div>
 
                                     </div>
 
 
                                     {{-- QR CODE --}}
-
                                     <div class="flex justify-center">
 
-                                        <div class="rounded-2xl border border-slate-200
-                                                bg-white p-3 shadow-sm">
+                                        <div class="flex items-center justify-center rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
 
                                             <img
                                                 src="{{ asset('images/qr1.png') }}"
-                                                alt="Temple Payment QR Code"
-                                                class="h-44 w-44 object-contain
-                                                   sm:h-48 sm:w-48"
+                                                alt="Payment QR Code"
+                                                class="w-56 max-w-full object-contain"
                                             >
 
                                         </div>
@@ -431,68 +287,9 @@
 
                                     {{-- UPI ID --}}
 
-                                    <div class="mt-4">
-
-                                        <p class="mb-2 text-center text-[10px]
-                                              font-medium uppercase
-                                              tracking-wider text-slate-400">
-
-                                            UPI ID
-
-                                        </p>
-
-
-                                        <div class="flex items-center overflow-hidden
-                                                rounded-xl border border-slate-200
-                                                bg-slate-50">
-
-
-                                            {{-- UPI ID --}}
-
-                                            <div class="min-w-0 flex-1 px-3 py-3">
-
-                                                <p id="upiId"
-                                                   class="break-all text-sm font-bold
-                                                      text-slate-800">
-
-                                                    temple@upi
-
-                                                </p>
-
-                                            </div>
-
-
-                                            {{-- COPY BUTTON --}}
-
-                                            <button
-                                                type="button"
-                                                id="copyUpiButton"
-                                                onclick="copyUpiId()"
-                                                class="flex shrink-0 items-center
-                                                   gap-1.5 border-l
-                                                   border-slate-200 bg-white
-                                                   px-3 py-3 text-xs
-                                                   font-semibold text-emerald-600
-                                                   transition hover:bg-emerald-50"
-                                            >
-
-                                                <i id="copyUpiIcon"
-                                                   class="fa-regular fa-copy"></i>
-
-                                                <span id="copyUpiText">
-                                                Copy
-                                            </span>
-
-                                            </button>
-
-                                        </div>
-
-                                    </div>
-
                                 </div>
 
                             </div>
-
 
                             {{-- =================================================
                                  PAYMENT INSTRUCTION

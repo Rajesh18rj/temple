@@ -534,7 +534,7 @@
                                     flex items-center
                                     justify-center">
 
-                                <img src="{{ asset('storage/' . $receipt->image) }}"
+                                <img src="{{ asset($receipt->image) }}"
                                      alt="Payment Proof"
                                      class="w-full
                                         max-h-[420px]

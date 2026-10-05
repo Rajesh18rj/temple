@@ -33,7 +33,7 @@ class ReceiptDetailController extends Controller
             'amounts' => 'nullable|array',
             'amounts.*' => 'nullable|numeric|min:0.01',
 
-            // Payment Proof
+            // Payment proof is optional
             'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
@@ -70,29 +70,92 @@ class ReceiptDetailController extends Controller
 
         DB::transaction(function () use ($request, $receipt) {
 
-            // Upload payment proof only if provided
+            /*
+            |--------------------------------------------------------------------------
+            | Payment Proof
+            |--------------------------------------------------------------------------
+            */
+
             if ($request->hasFile('image')) {
 
-                $imagePath = $request->file('image')
-                    ->store('receipts', 'public');
+                $file = $request->file('image');
 
+                // Check upload validity
+                if (!$file->isValid()) {
+                    throw new \Exception(
+                        'Payment proof upload failed: ' . $file->getErrorMessage()
+                    );
+                }
+
+                // Public upload directory
+                $uploadPath = public_path('uploads/receipts');
+
+                // Create directory if it does not exist
+                if (!is_dir($uploadPath)) {
+
+                    mkdir($uploadPath, 0755, true);
+                }
+
+                // Check directory
+                if (!is_dir($uploadPath)) {
+                    throw new \Exception(
+                        'Unable to create upload directory: ' . $uploadPath
+                    );
+                }
+
+                // Generate unique filename
+                $filename = time()
+                    . '_'
+                    . uniqid()
+                    . '.'
+                    . $file->getClientOriginalExtension();
+
+                // Move uploaded file
+                $file->move(
+                    $uploadPath,
+                    $filename
+                );
+
+                // Check file exists
+                if (!file_exists($uploadPath . '/' . $filename)) {
+                    throw new \Exception(
+                        'Payment proof could not be saved.'
+                    );
+                }
+
+                // Save path in database
                 $receipt->update([
-                    'image' => $imagePath,
+                    'image' => 'uploads/receipts/' . $filename,
                 ]);
             }
 
-            // Remove old details
+            /*
+            |--------------------------------------------------------------------------
+            | Remove Old Receipt Details
+            |--------------------------------------------------------------------------
+            */
+
             $receipt->receiptDetails()->delete();
 
-            // Save selected categories
+            /*
+            |--------------------------------------------------------------------------
+            | Save Selected Categories
+            |--------------------------------------------------------------------------
+            */
+
             foreach ($request->categories as $categoryId) {
 
                 $category = Category::findOrFail($categoryId);
 
                 if ($category->amount !== null) {
+
                     $amount = $category->amount;
+
                 } else {
-                    $amount = $request->input("amounts.$categoryId");
+
+                    $amount = $request->input(
+                        "amounts.$categoryId"
+                    );
                 }
 
                 ReceiptDetail::create([
@@ -107,7 +170,7 @@ class ReceiptDetailController extends Controller
             ->route('receipts.index')
             ->with(
                 'success',
-                'Receipt details and payment proof saved successfully.'
+                'Receipt details saved successfully.'
             );
     }
 }
