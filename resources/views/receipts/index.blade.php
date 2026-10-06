@@ -537,7 +537,7 @@
                                               text-slate-400
                                               mt-0.5">
 
-                                        Receipt #{{ $receipt->id }}
+                                        Receipt No: {{ $receipt->receipt_number }}
 
                                     </p>
 

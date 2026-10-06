@@ -131,7 +131,7 @@
                                  text-xs
                                  font-medium">
 
-                        Receipt #{{ $receipt->id }}
+                        Receipt No: {{ $receipt->receipt_number }}
 
                     </span>
 

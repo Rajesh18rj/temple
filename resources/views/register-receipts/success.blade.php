@@ -60,7 +60,7 @@
 
                                 <p class="mt-1 text-lg font-bold text-slate-900">
 
-                                    #{{ $receipt->id }}
+                                    #{{ $receipt->receipt_number }}
 
                                 </p>
 

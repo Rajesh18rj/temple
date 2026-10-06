@@ -140,6 +140,12 @@ class ReceiptController extends Controller
             'receipt_type' => 'walk_in'
         ]);
 
+        $receipt->update([
+            'receipt_number' => $receipt->date->format('Ymd')
+                . '-'
+                . str_pad($receipt->id, 3, '0', STR_PAD_LEFT),
+        ]);
+
         return redirect()
             ->route('receipts.details', $receipt)
             ->with('success', 'Receipt created successfully.');
@@ -423,7 +429,7 @@ class ReceiptController extends Controller
 
 
         $rightText(
-            'Receipt No: #' . $receipt->id,
+            'Receipt No: ' . $receipt->receipt_number,
             $rightEdge,
             75,
             18,
@@ -985,9 +991,7 @@ class ReceiptController extends Controller
         ]);
 
         return $pdf->download(
-            'receipt-' .
-            $receipt->id .
-            '.pdf'
+            'receipt-' . $receipt->receipt_number . '.pdf'
         );
     }
 

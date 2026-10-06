@@ -56,6 +56,28 @@
                     </p>
 
                     <div class="space-y-2">
+
+                        {{-- Dashboard --}}
+                        <a href="{{ route('dashboard') }}"
+                           class="group flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-medium transition
+                           {{ request()->routeIs('dashboard')
+                                ? 'bg-gradient-to-r from-indigo-600 via-violet-600 to-fuchsia-500 text-white shadow-lg shadow-indigo-200/70'
+                                : 'text-slate-700 hover:bg-slate-50' }}">
+
+                            <span class="flex h-11 w-11 items-center justify-center rounded-2xl transition
+                                {{ request()->routeIs('dashboard')
+                                    ? 'bg-white/15 text-white'
+                                    : 'bg-slate-100 text-slate-600 group-hover:bg-indigo-50 group-hover:text-indigo-600' }}">
+                                <i class="fa-solid fa-layer-group text-sm"></i>
+                            </span>
+
+                            <span class="flex-1">Dashboard</span>
+
+                            @if (request()->routeIs('dashboard'))
+                                <span class="h-2.5 w-2.5 rounded-full bg-white/90"></span>
+                            @endif
+                        </a>
+
                         {{-- Dashboard --}}
                         <a href="{{ route('categories.index') }}"
                            class="group flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-medium transition

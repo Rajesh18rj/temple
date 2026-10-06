@@ -13,6 +13,7 @@ class Receipt extends Model
         'mobile',
         'address',
         'date',
+        'receipt_number',
         'receipt_type',
         'city_id',
     ];

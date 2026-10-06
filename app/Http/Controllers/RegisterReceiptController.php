@@ -101,6 +101,12 @@ class RegisterReceiptController extends Controller
                 'receipt_type' => 'registered',
             ]);
 
+            $receipt->update([
+                'receipt_number' => $receipt->date->format('Ymd')
+                    . '-'
+                    . str_pad($receipt->id, 3, '0', STR_PAD_LEFT),
+            ]);
+
 
             foreach ($request->categories as $categoryId) {
 

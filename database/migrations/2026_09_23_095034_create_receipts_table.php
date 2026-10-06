@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('receipts', function (Blueprint $table) {
             $table->id();
-            $table->string('receipt_number')->unique();
+            $table->string('receipt_number')->nullable()->unique();
             $table->string('name');
             $table->string('image')->nullable();
             $table->string('mobile', 20)->nullable();
