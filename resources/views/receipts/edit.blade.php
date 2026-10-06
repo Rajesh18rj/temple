@@ -308,46 +308,104 @@
                             </div>
 
 
-                            {{-- Address --}}
+                            {{-- ================= ADDRESS & CITY ================= --}}
                             <div class="md:col-span-2">
 
-                                <label for="address"
-                                       class="block text-sm
-                                          font-medium
-                                          text-slate-700 mb-2">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
 
-                                    Address
+                                    {{-- Address --}}
+                                    <div>
 
-                                </label>
+                                        <label for="address"
+                                               class="block text-sm
+                          font-medium
+                          text-slate-700 mb-2">
 
-                                <textarea id="address"
-                                          name="address"
-                                          rows="3"
-                                          placeholder="Enter donor address"
-                                          class="w-full px-4 py-2.5
-                                             rounded-lg
-                                             border border-slate-200
-                                             bg-white
-                                             text-sm text-slate-800
-                                             placeholder:text-slate-400
-                                             outline-none
-                                             resize-none
-                                             focus:border-violet-400
-                                             focus:ring-2
-                                             focus:ring-violet-100
-                                             transition">{{ old('address', $receipt->address) }}</textarea>
+                                            Address
 
-                                @error('address')
+                                        </label>
 
-                                <p class="text-xs
-                                          text-red-600
-                                          mt-1.5">
+                                        <textarea
+                                            id="address"
+                                            name="address"
+                                            rows="3"
+                                            placeholder="Enter donor address"
+                                            class="w-full px-4 py-2.5
+                       rounded-lg
+                       border border-slate-200
+                       bg-white
+                       text-sm text-slate-800
+                       placeholder:text-slate-400
+                       outline-none
+                       resize-none
+                       focus:border-violet-400
+                       focus:ring-2
+                       focus:ring-violet-100
+                       transition">{{ old('address', $receipt->address) }}</textarea>
 
-                                    {{ $message }}
+                                        @error('address')
+                                        <p class="text-xs text-red-600 mt-1.5">
+                                            {{ $message }}
+                                        </p>
+                                        @enderror
 
-                                </p>
+                                    </div>
 
-                                @enderror
+
+                                    {{-- City --}}
+                                    <div>
+
+                                        <label for="city_id"
+                                               class="block text-sm
+                          font-medium
+                          text-slate-700 mb-2">
+
+                                            City
+
+                                            <span class="text-red-500">*</span>
+
+                                        </label>
+
+                                        <select
+                                            id="city_id"
+                                            name="city_id"
+                                            class="w-full px-4 py-2.5
+                       rounded-lg
+                       border border-slate-200
+                       bg-white
+                       text-sm text-slate-800
+                       outline-none
+                       focus:border-violet-400
+                       focus:ring-2
+                       focus:ring-violet-100
+                       transition">
+
+                                            <option value="">
+                                                Select City
+                                            </option>
+
+                                            @foreach($cities as $city)
+
+                                                <option value="{{ $city->id }}"
+                                                    {{ old('city_id', $receipt->city_id) == $city->id ? 'selected' : '' }}>
+
+                                                    {{ $city->name }}
+
+                                                </option>
+
+                                            @endforeach
+
+                                        </select>
+
+                                        @error('city_id')
+                                        <p class="text-xs text-red-600 mt-1.5">
+                                            {{ $message }}
+                                        </p>
+                                        @enderror
+
+                                    </div>
+
+                                </div>
 
                             </div>
 

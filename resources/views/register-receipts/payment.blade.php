@@ -353,7 +353,7 @@
 
                                 Upload Payment Proof
 
-                                <span class="text-red-500">*</span>
+                                <span class="text-xs font-normal text-slate-400">(Optional)</span>
 
                             </h3>
 

@@ -19,7 +19,7 @@ class ReceiptDetailController extends Controller
 
     public function show(Receipt $receipt)
     {
-        $receipt->load('receiptDetails.category');
+        $receipt->load('receiptDetails.category', 'city');
 
         return view('receipts.view', compact('receipt'));
     }

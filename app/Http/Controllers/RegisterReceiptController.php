@@ -162,53 +162,50 @@ class RegisterReceiptController extends Controller
 
 
     /**
-     * Upload payment proof
+     * Upload payment proof - OPTIONAL
      */
     public function paymentStore(Request $request, Receipt $receipt)
     {
         $request->validate([
-            'image' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
 
         /*
         |--------------------------------------------------------------------------
-        | Store payment proof directly in public/uploads/receipts
+        | Store payment proof only if uploaded
         |--------------------------------------------------------------------------
         */
 
-        $file = $request->file('image');
+        if ($request->hasFile('image')) {
 
-        $uploadPath = public_path('uploads/receipts');
+            $file = $request->file('image');
 
-        // Create directory if it doesn't exist
-        if (!is_dir($uploadPath)) {
-            mkdir($uploadPath, 0755, true);
+            $uploadPath = public_path('uploads/receipts');
+
+            // Create directory if it doesn't exist
+            if (!is_dir($uploadPath)) {
+                mkdir($uploadPath, 0755, true);
+            }
+
+            // Generate unique filename
+            $filename = time()
+                . '_'
+                . uniqid()
+                . '.'
+                . $file->getClientOriginalExtension();
+
+            // Move file directly to public folder
+            $file->move(
+                $uploadPath,
+                $filename
+            );
+
+            // Update receipt with payment proof
+            $receipt->update([
+                'image' => 'uploads/receipts/' . $filename,
+            ]);
         }
-
-        // Generate unique filename
-        $filename = time()
-            . '_'
-            . uniqid()
-            . '.'
-            . $file->getClientOriginalExtension();
-
-        // Move file directly to public folder
-        $file->move(
-            $uploadPath,
-            $filename
-        );
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | Update receipt
-        |--------------------------------------------------------------------------
-        */
-
-        $receipt->update([
-            'image' => 'uploads/receipts/' . $filename,
-        ]);
 
 
         /*
@@ -221,7 +218,7 @@ class RegisterReceiptController extends Controller
             ->route('register-receipts.success', $receipt)
             ->with(
                 'success',
-                'Payment proof submitted successfully.'
+                'Payment details submitted successfully.'
             );
     }
 

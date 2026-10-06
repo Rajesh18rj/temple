@@ -127,18 +127,45 @@
                         {{-- DATE --}}
                         <div class="flex items-start justify-between gap-4">
 
-                        <span class="text-sm text-slate-400">
-                            Date
-                        </span>
+                            <span class="text-sm text-slate-400">
+                                Date
+                            </span>
 
-                            <span class="text-right text-sm font-semibold
-                                     text-slate-700">
+                                                    <span class="text-right text-sm font-semibold text-slate-700">
+                                {{ $receipt->date
+                                    ? $receipt->date->format('d-m-Y')
+                                    : '-' }}
+                            </span>
 
-                            {{ $receipt->date
-                                ? $receipt->date->format('d-m-Y')
-                                : '-' }}
+                        </div>
 
-                        </span>
+
+                        {{-- CATEGORY DETAILS --}}
+                        <div class="border-t border-slate-100 pt-4">
+
+                            <p class="mb-3 text-sm font-semibold text-slate-700">
+                                Contribution Details
+                            </p>
+
+                            <div class="space-y-2">
+
+                                @foreach($receipt->receiptDetails as $detail)
+
+                                    <div class="flex items-center justify-between gap-4 rounded-xl bg-slate-50 px-3 py-2.5">
+
+                <span class="text-sm text-slate-600">
+                    {{ $detail->category->name }}
+                </span>
+
+                                        <span class="shrink-0 text-sm font-semibold text-slate-800">
+                    ₹{{ number_format($detail->amount, 2) }}
+                </span>
+
+                                    </div>
+
+                                @endforeach
+
+                            </div>
 
                         </div>
 
@@ -148,18 +175,16 @@
 
                             <div class="flex items-center justify-between gap-4">
 
-                            <span class="text-sm font-semibold text-slate-700">
-                                Total Contribution
-                            </span>
+        <span class="text-sm font-semibold text-slate-700">
+            Total Contribution
+        </span>
 
                                 <span class="text-xl font-bold text-emerald-600">
-
-                                ₹{{ number_format(
-                                    $receipt->receiptDetails->sum('amount'),
-                                    2
-                                ) }}
-
-                            </span>
+            ₹{{ number_format(
+                $receipt->receiptDetails->sum('amount'),
+                2
+            ) }}
+        </span>
 
                             </div>
 

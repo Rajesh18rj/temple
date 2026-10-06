@@ -262,46 +262,104 @@
                     <div class="border-t border-slate-200 mb-8"></div>
 
 
-                    {{-- ================= ADDRESS ================= --}}
+                    {{-- ================= ADDRESS & CITY ================= --}}
                     <div class="mb-8">
 
                         <div class="mb-5">
 
                             <h3 class="text-sm font-semibold text-slate-800">
-                                Address
+                                Address Details
                             </h3>
 
                             <p class="text-xs text-slate-500 mt-1">
-                                Enter the donor's address.
+                                Enter the donor's address and city.
                             </p>
 
                         </div>
 
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
 
-                        <textarea name="address"
-                                  rows="4"
-                                  placeholder="Enter complete address"
-                                  class="w-full px-3.5 py-3
-                                     rounded-lg
-                                     border border-slate-200
-                                     bg-white
-                                     text-sm text-slate-700
-                                     placeholder:text-slate-400
-                                     resize-none
-                                     outline-none
-                                     focus:border-violet-400
-                                     focus:ring-2
-                                     focus:ring-violet-100
-                                     transition">{{ old('address') }}</textarea>
+                            {{-- ================= ADDRESS ================= --}}
+                            <div>
+
+                                <label for="address"
+                                       class="block text-sm font-medium text-slate-700 mb-1.5">
+                                    Address
+                                </label>
+
+                                <textarea
+                                    id="address"
+                                    name="address"
+                                    rows="4"
+                                    placeholder="Enter complete address"
+                                    class="w-full px-3.5 py-3
+                       rounded-lg
+                       border border-slate-200
+                       bg-white
+                       text-sm text-slate-700
+                       placeholder:text-slate-400
+                       resize-none
+                       outline-none
+                       focus:border-violet-400
+                       focus:ring-2
+                       focus:ring-violet-100
+                       transition">{{ old('address') }}</textarea>
+
+                                @error('address')
+                                <p class="text-sm text-red-600 mt-1.5">
+                                    {{ $message }}
+                                </p>
+                                @enderror
+
+                            </div>
 
 
-                        @error('address')
+                            {{-- ================= CITY ================= --}}
+                            <div>
 
-                        <p class="text-sm text-red-600 mt-1.5">
-                            {{ $message }}
-                        </p>
+                                <label for="city_id"
+                                       class="block text-sm font-medium text-slate-700 mb-1.5">
 
-                        @enderror
+                                    City
+                                    <span class="text-red-500">*</span>
+
+                                </label>
+
+                                <select
+                                    id="city_id"
+                                    name="city_id"
+                                    class="w-full h-11
+                       px-3.5
+                       rounded-lg
+                       border border-slate-200
+                       bg-white
+                       text-sm text-slate-700
+                       outline-none
+                       focus:border-violet-400
+                       focus:ring-2
+                       focus:ring-violet-100
+                       transition">
+
+                                    <option value="">Select City</option>
+
+                                    @foreach($cities as $city)
+                                        <option value="{{ $city->id }}"
+                                            {{ old('city_id') == $city->id ? 'selected' : '' }}>
+                                            {{ $city->name }}
+                                        </option>
+                                    @endforeach
+
+                                </select>
+
+                                @error('city_id')
+                                <p class="text-sm text-red-600 mt-1.5">
+                                    {{ $message }}
+                                </p>
+                                @enderror
+
+                            </div>
+
+                        </div>
 
                     </div>
 

@@ -3,23 +3,115 @@
 namespace App\Http\Controllers;
 
 use App\Models\Category;
+use App\Models\City;
 use App\Models\Receipt;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Exports\ReceiptsExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 
 class ReceiptController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $receipts = Receipt::latest()->get();
+        $query = Receipt::with('city');
 
-        return view('receipts.index', compact('receipts'));
+        // Mobile search
+        if ($request->filled('mobile')) {
+            $query->where('mobile', 'like', '%' . $request->mobile . '%');
+        }
+
+        // City filter
+        if ($request->filled('city_id')) {
+            $query->where('city_id', $request->city_id);
+        }
+
+        // From date
+        if ($request->filled('from_date')) {
+            $query->whereDate('date', '>=', $request->from_date);
+        }
+
+        // To date
+        if ($request->filled('to_date')) {
+            $query->whereDate('date', '<=', $request->to_date);
+        }
+
+        $receipts = $query
+            ->latest()
+            ->paginate(20)
+            ->withQueryString();
+
+        $cities = City::where('status', true)
+            ->orderBy('name')
+            ->get();
+
+        return view('receipts.index', compact(
+            'receipts',
+            'cities'
+        ));
+    }
+
+    public function downloadExcel(Request $request)
+    {
+        $query = Receipt::query();
+
+        // Mobile filter
+        if ($request->filled('mobile')) {
+            $query->where(
+                'mobile',
+                'like',
+                '%' . $request->mobile . '%'
+            );
+        }
+
+        // City filter
+        if ($request->filled('city_id')) {
+            $query->where(
+                'city_id',
+                $request->city_id
+            );
+        }
+
+        // From date
+        if ($request->filled('from_date')) {
+            $query->whereDate(
+                'date',
+                '>=',
+                $request->from_date
+            );
+        }
+
+        // To date
+        if ($request->filled('to_date')) {
+            $query->whereDate(
+                'date',
+                '<=',
+                $request->to_date
+            );
+        }
+
+        return Excel::download(
+            new ReceiptsExport($query),
+            'receipts-' . now()->format('Y-m-d') . '.xlsx'
+        );
+    }
+
+    public function downloadAllExcel()
+    {
+        return Excel::download(
+            new ReceiptsExport(),
+            'all-receipts-' . now()->format('Y-m-d') . '.xlsx'
+        );
     }
 
     public function create()
     {
-        return view('receipts.create');
+        $cities = City::where('status', true)
+            ->orderBy('name')
+            ->get();
+
+        return view('receipts.create', compact('cities'));
     }
 
     public function store(Request $request)
@@ -28,6 +120,7 @@ class ReceiptController extends Controller
             'name' => 'required|string|max:255',
             'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'mobile' => 'nullable|string|max:20',
+            'city_id' => 'required|exists:cities,id',
             'address' => 'nullable|string',
         ]);
 
@@ -41,6 +134,7 @@ class ReceiptController extends Controller
             'name' => $request->name,
             'image' => $imagePath,
             'mobile' => $request->mobile,
+            'city_id' => $request->city_id,
             'address' => $request->address,
             'date' => now()->toDateString(),
             'receipt_type' => 'walk_in'
@@ -905,9 +999,14 @@ class ReceiptController extends Controller
             ->orderBy('name')
             ->get();
 
+        $cities = City::where('status', true)
+            ->orderBy('name')
+            ->get();
+
         return view('receipts.edit', compact(
             'receipt',
-            'categories'
+            'categories',
+            'cities'
         ));
     }
 
@@ -921,6 +1020,8 @@ class ReceiptController extends Controller
                 'string',
                 'max:20'
             ],
+
+            'city_id' => 'required|exists:cities,id',
 
             'address' => [
                 'nullable',
@@ -967,6 +1068,7 @@ class ReceiptController extends Controller
 
         $receipt->name = $request->name;
         $receipt->mobile = $request->mobile;
+        $receipt->city_id = $request->city_id;
         $receipt->address = $request->address;
 
 

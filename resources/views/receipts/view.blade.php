@@ -155,27 +155,28 @@
 
 
             {{-- Donor Information --}}
+            {{-- Donor Information --}}
             <div class="p-5 sm:p-6">
 
                 <div class="grid grid-cols-1
-                        sm:grid-cols-2
-                        lg:grid-cols-4
-                        gap-5">
+                sm:grid-cols-2
+                lg:grid-cols-5
+                gap-5">
 
 
                     {{-- Name --}}
                     <div>
 
                         <p class="text-xs font-medium
-                              uppercase tracking-wide
-                              text-slate-400">
+                      uppercase tracking-wide
+                      text-slate-400">
                             Name
                         </p>
 
                         <p class="mt-1.5
-                              text-sm font-medium
-                              text-slate-800
-                              break-words">
+                      text-sm font-medium
+                      text-slate-800
+                      break-words">
 
                             {{ $receipt->name }}
 
@@ -188,16 +189,36 @@
                     <div>
 
                         <p class="text-xs font-medium
-                              uppercase tracking-wide
-                              text-slate-400">
+                      uppercase tracking-wide
+                      text-slate-400">
                             Mobile
                         </p>
 
                         <p class="mt-1.5
-                              text-sm font-medium
-                              text-slate-800">
+                      text-sm font-medium
+                      text-slate-800">
 
                             {{ $receipt->mobile ?? '-' }}
+
+                        </p>
+
+                    </div>
+
+
+                    {{-- City --}}
+                    <div>
+
+                        <p class="text-xs font-medium
+                      uppercase tracking-wide
+                      text-slate-400">
+                            City
+                        </p>
+
+                        <p class="mt-1.5
+                      text-sm font-medium
+                      text-slate-800">
+
+                            {{ $receipt->city?->name ?? '-' }}
 
                         </p>
 
@@ -208,14 +229,14 @@
                     <div>
 
                         <p class="text-xs font-medium
-                              uppercase tracking-wide
-                              text-slate-400">
+                      uppercase tracking-wide
+                      text-slate-400">
                             Date
                         </p>
 
                         <p class="mt-1.5
-                              text-sm font-medium
-                              text-slate-800">
+                      text-sm font-medium
+                      text-slate-800">
 
                             {{ $receipt->date
                                 ? $receipt->date->format('d M Y')
@@ -230,15 +251,15 @@
                     <div>
 
                         <p class="text-xs font-medium
-                              uppercase tracking-wide
-                              text-slate-400">
+                      uppercase tracking-wide
+                      text-slate-400">
                             Address
                         </p>
 
                         <p class="mt-1.5
-                              text-sm font-medium
-                              leading-5
-                              text-slate-700">
+                      text-sm font-medium
+                      leading-5
+                      text-slate-700">
 
                             {{ $receipt->address ?? '-' }}
 
@@ -249,7 +270,6 @@
                 </div>
 
             </div>
-
         </div>
 
 

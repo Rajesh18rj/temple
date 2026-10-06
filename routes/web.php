@@ -69,6 +69,16 @@ Route::middleware('auth')->group(function () {
         [ReceiptController::class, 'downloadPdf']
     )->name('receipts.download-pdf');
 
+    Route::get(
+        '/receipts/export/all',
+        [ReceiptController::class, 'downloadAllExcel']
+    )->name('receipts.export.all');
+
+    Route::get(
+        '/receipts/export',
+        [ReceiptController::class, 'downloadExcel']
+    )->name('receipts.export');
+
 
 });
 
