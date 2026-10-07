@@ -1,4 +1,4 @@
-<div class="relative" id="userDropdownWrap">
+<div class="relative hidden sm:block" id="userDropdownWrap">
     @php
         $user = auth()->user();
 
@@ -93,7 +93,7 @@
 
         {{-- Menu links --}}
         <div class="p-2.5">
-            <a href="#"
+            <a href="{{ route('account') }}"
                class="group flex items-center gap-3 rounded-2xl px-3 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
             <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-500 transition group-hover:bg-indigo-50 group-hover:text-indigo-600">
                 <i class="fa-regular fa-user text-sm"></i>

@@ -7,7 +7,7 @@
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>{{ $title ?? 'Temple Registration' }}</title>
+    <title>{{ $title ?? 'ஸ்ரீ வீரபையம்மாள் திருக்கோவில்' }}</title>
 
 
     {{-- Font Awesome --}}
@@ -83,7 +83,7 @@
                 <h1 class="truncate text-sm font-bold text-slate-900
                            sm:text-base">
 
-                    Temple Registration
+                    ஸ்ரீ வீரபையம்மாள் திருக்கோவில்
 
                 </h1>
 
@@ -167,7 +167,7 @@
                 <div>
 
                     <p class="text-sm font-semibold text-slate-800">
-                        Temple Registration
+                        ஸ்ரீ வீரபையம்மாள் திருக்கோவில்
                     </p>
 
                     <p class="mt-0.5 text-xs text-slate-400">

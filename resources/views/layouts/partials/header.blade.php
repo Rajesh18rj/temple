@@ -57,9 +57,9 @@
                                 'icon' => 'fa-heart-circle-check',
                                 'iconBg' => 'from-rose-500 via-pink-500 to-amber-400',
                                 'shadow' => 'shadow-rose-200/60',
-                                'badge' => 'Temple Project',
+                                'badge' => 'ஸ்ரீ வீரபையம்மாள்  துணை',
                                 'badgeClass' => 'border-rose-100 bg-rose-50 text-rose-600',
-                                'subtitle' => 'Temple Project',
+                                'subtitle' => 'ஸ்ரீ வீரபையம்மாள் திருக்கோவில்',
                             ],
                         };
                     @endphp

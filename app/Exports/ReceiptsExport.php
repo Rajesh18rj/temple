@@ -130,8 +130,8 @@ class ReceiptsExport implements
                 $totalRow = $lastReceiptRow + 1;
 
                 $sheet->setCellValue(
-                    "A{$totalRow}",
-                    'Category Total'
+                    "F{$totalRow}",
+                    'Total'
                 );
 
                 /*

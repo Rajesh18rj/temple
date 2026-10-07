@@ -5,44 +5,79 @@
     <div class="min-h-screen bg-slate-50 p-4 sm:p-6 lg:p-8">
 
         {{-- Page Header --}}
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        {{-- Page Header --}}
+        <div class="mb-7 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
 
-            <div>
-                <h1 class="text-2xl font-semibold text-slate-800">
-                    Category Master
-                </h1>
+            {{-- Title --}}
+            <div class="flex items-center gap-3">
 
-                <p class="text-sm text-slate-500 mt-1">
-                    Manage receipt categories and their amounts.
-                </p>
+                <div class="flex h-11 w-11 shrink-0 items-center justify-center
+                    rounded-2xl bg-violet-50 text-violet-600">
+
+                    <svg class="h-5 w-5"
+                         fill="none"
+                         stroke="currentColor"
+                         viewBox="0 0 24 24">
+
+                        <path stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="1.8"
+                              d="M4 6.75A2.75 2.75 0 016.75 4h10.5A2.75 2.75 0 0120 6.75v10.5A2.75 2.75 0 0117.25 20H6.75A2.75 2.75 0 014 17.25V6.75z"/>
+
+                        <path stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="1.8"
+                              d="M8 9h8M8 13h5M8 17h3"/>
+
+                    </svg>
+
+                </div>
+
+                <div>
+                    <h1 class="text-2xl font-bold tracking-tight text-slate-800">
+                        Category Master
+                    </h1>
+
+                    <p class="mt-0.5 text-sm text-slate-500">
+                        Manage receipt categories and their amounts.
+                    </p>
+                </div>
+
             </div>
 
+
+            {{-- Add Category --}}
             <a href="{{ route('categories.create') }}"
-               class="inline-flex items-center justify-center gap-2
-                  px-4 py-2.5 rounded-lg
-                  bg-violet-600 text-white
-                  text-sm font-medium
-                  hover:bg-violet-700
-                  transition">
+               class="group inline-flex items-center justify-center gap-2
+              rounded-xl bg-violet-600 px-4 py-2.5
+              text-sm font-semibold text-white
+              shadow-sm shadow-violet-200
+              transition-all duration-200
+              hover:bg-violet-700
+              hover:shadow-md hover:shadow-violet-200">
 
-                <svg class="w-4 h-4"
-                     fill="none"
-                     stroke="currentColor"
-                     viewBox="0 0 24 24">
+        <span class="flex h-7 w-7 items-center justify-center
+                     rounded-lg bg-white/15">
 
-                    <path stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M12 4v16m8-8H4"/>
+            <svg class="h-4 w-4"
+                 fill="none"
+                 stroke="currentColor"
+                 viewBox="0 0 24 24">
 
-                </svg>
+                <path stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 4v16m8-8H4"/>
+
+            </svg>
+
+        </span>
 
                 Add Category
 
             </a>
 
         </div>
-
 
         {{-- Success Message --}}
         @if(session('success'))

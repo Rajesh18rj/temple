@@ -33,8 +33,8 @@
 
                 {{-- Brand Text --}}
                 <div class="min-w-0">
-                    <h1 class="text-lg font-bold tracking-wide text-slate-800">
-                        Temple Project
+                    <h1 class="text-md font-bold tracking-wide text-slate-800">
+                        ஸ்ரீ வீரபையம்மாள் திருக்கோவில்
                     </h1>
 
                     <p class="mt-1 text-xs text-slate-500">
@@ -68,7 +68,7 @@
                                 {{ request()->routeIs('dashboard')
                                     ? 'bg-white/15 text-white'
                                     : 'bg-slate-100 text-slate-600 group-hover:bg-indigo-50 group-hover:text-indigo-600' }}">
-                                <i class="fa-solid fa-layer-group text-sm"></i>
+                                <i class="fa-solid fa-pie-chart text-sm"></i>
                             </span>
 
                             <span class="flex-1">Dashboard</span>

@@ -5,31 +5,135 @@
     <div class="min-h-screen bg-slate-50 p-4 sm:p-6 lg:p-8">
 
         {{-- Page Header --}}
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div class="mb-7 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
 
+            {{-- Title --}}
             <div>
-                <h1 class="text-2xl font-semibold text-slate-800">
-                    Receipts
-                </h1>
+                <div class="flex items-center gap-3">
+                    <div class="flex h-11 w-11 items-center justify-center rounded-2xl
+                        bg-violet-50 text-violet-600">
+                        <svg class="h-5 w-5"
+                             fill="none"
+                             stroke="currentColor"
+                             viewBox="0 0 24 24">
+                            <path stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  stroke-width="1.8"
+                                  d="M9 14.25l6-6m-6 0h6v6M5.25 4.5h13.5a1.5 1.5 0 011.5 1.5v12a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5V6a1.5 1.5 0 011.5-1.5z"/>
+                        </svg>
+                    </div>
 
-                <p class="text-sm text-slate-500 mt-1">
-                    Manage temple receipts.
-                </p>
+                    <div>
+                        <h1 class="text-2xl font-bold tracking-tight text-slate-800">
+                            Receipts
+                        </h1>
+
+                        <p class="mt-0.5 text-sm text-slate-500">
+                            Manage temple receipts.
+                        </p>
+                    </div>
+                </div>
             </div>
 
-            {{-- New Receipt --}}
-            <a href="{{ route('receipts.create') }}"
-               class="inline-flex items-center justify-center gap-2
-                      px-4 py-2.5
-                      rounded-lg
-                      bg-violet-600
-                      text-white
-                      text-sm
-                      font-medium
-                      hover:bg-violet-700
-                      transition">
 
-                <svg class="w-4 h-4"
+            {{-- Actions --}}
+            <div class="flex flex-wrap items-center gap-2.5">
+
+                {{-- Download All --}}
+                <a href="{{ route('receipts.export.all') }}"
+                   class="group inline-flex items-center justify-center gap-2
+                  rounded-xl border border-emerald-200
+                  bg-white px-4 py-2.5
+                  text-sm font-semibold text-emerald-600
+                  shadow-sm
+                  transition-all duration-200
+                  hover:border-emerald-300
+                  hover:bg-emerald-50
+                  hover:shadow-md">
+
+            <span class="flex h-7 w-7 items-center justify-center
+                         rounded-lg bg-emerald-50
+                         transition group-hover:bg-emerald-100">
+
+                <svg class="h-4 w-4"
+                     fill="none"
+                     stroke="currentColor"
+                     viewBox="0 0 24 24">
+
+                    <path stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M12 10v6m0 0l-3-3m3 3l3-3
+                             M4 19h16
+                             M5 5h14
+                             a2 2 0 012 2v12
+                             a2 2 0 01-2 2H5
+                             a2 2 0 01-2-2V7
+                             a2 2 0 012-2z"/>
+
+                </svg>
+
+            </span>
+
+                    Download All
+                </a>
+
+
+                {{-- Download Filtered --}}
+                <a href="{{ route('receipts.export', request()->query()) }}"
+                   class="group inline-flex items-center justify-center gap-2
+                  rounded-xl border border-violet-200
+                  bg-white px-4 py-2.5
+                  text-sm font-semibold text-violet-600
+                  shadow-sm
+                  transition-all duration-200
+                  hover:border-violet-300
+                  hover:bg-violet-50
+                  hover:shadow-md">
+
+            <span class="flex h-7 w-7 items-center justify-center
+                         rounded-lg bg-violet-50
+                         transition group-hover:bg-violet-100">
+
+                <svg class="h-4 w-4"
+                     fill="none"
+                     stroke="currentColor"
+                     viewBox="0 0 24 24">
+
+                    <path stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M12 10v6m0 0l-3-3m3 3l3-3
+                             M4 19h16
+                             M5 5h14
+                             a2 2 0 012 2v12
+                             a2 2 0 01-2 2H5
+                             a2 2 0 01-2-2V7
+                             a2 2 0 012-2z"/>
+
+                </svg>
+
+            </span>
+
+                    Download Filtered
+                </a>
+
+
+                {{-- New Receipt --}}
+                <a href="{{ route('receipts.create') }}"
+                   class="group inline-flex items-center justify-center gap-2
+                  rounded-xl
+                  bg-violet-600 px-4 py-2.5
+                  text-sm font-semibold text-white
+                  shadow-sm shadow-violet-200
+                  transition-all duration-200
+                  hover:bg-violet-700
+                  hover:shadow-md hover:shadow-violet-200">
+
+            <span class="flex h-7 w-7 items-center justify-center
+                         rounded-lg bg-white/15">
+
+                <svg class="h-4 w-4"
                      fill="none"
                      stroke="currentColor"
                      viewBox="0 0 24 24">
@@ -41,78 +145,12 @@
 
                 </svg>
 
-                New Receipt
+            </span>
 
-            </a>
+                    New Receipt
+                </a>
 
-        </div>
-
-        <div class="flex flex-wrap items-center gap-2">
-
-            {{-- Download All --}}
-            <a href="{{ route('receipts.export.all') }}"
-               class="inline-flex items-center justify-center gap-2
-              px-4 py-2.5
-              rounded-lg
-              bg-emerald-600
-              text-white
-              text-sm font-medium
-              hover:bg-emerald-700
-              transition">
-
-                <svg class="w-4 h-4"
-                     fill="none"
-                     stroke="currentColor"
-                     viewBox="0 0 24 24">
-
-                    <path stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M12 10v6m0 0l-3-3m3 3l3-3
-                     M4 19h16
-                     M5 5h14
-                     a2 2 0 012 2v12
-                     a2 2 0 01-2 2H5
-                     a2 2 0 01-2-2V7
-                     a2 2 0 012-2z"/>
-
-                </svg>
-
-                Download All
-            </a>
-
-
-            {{-- Download Filtered --}}
-            <a href="{{ route('receipts.export', request()->query()) }}"
-               class="inline-flex items-center justify-center gap-2
-              px-4 py-2.5
-              rounded-lg
-              bg-violet-600
-              text-white
-              text-sm font-medium
-              hover:bg-violet-700
-              transition">
-
-                <svg class="w-4 h-4"
-                     fill="none"
-                     stroke="currentColor"
-                     viewBox="0 0 24 24">
-
-                    <path stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M12 10v6m0 0l-3-3m3 3l3-3
-                     M4 19h16
-                     M5 5h14
-                     a2 2 0 012 2v12
-                     a2 2 0 01-2 2H5
-                     a2 2 0 01-2-2V7
-                     a2 2 0 012-2z"/>
-
-                </svg>
-
-                Download Filtered
-            </a>
+            </div>
 
         </div>
 
@@ -913,11 +951,36 @@
             {{-- Pagination --}}
             @if($receipts->hasPages())
 
-                <div class="px-5 sm:px-6 py-4 border-t border-slate-200">
+                {{-- Pagination --}}
+                @if ($receipts->hasPages())
+                    <div class="flex flex-col gap-3 border-t border-slate-100
+                bg-white px-6 py-4
+                sm:flex-row sm:items-center sm:justify-between">
 
-                    {{ $receipts->links() }}
+                        {{-- Results Count --}}
+                        <p class="text-xs font-medium text-slate-500">
+                            Showing
+                            <span class="font-semibold text-slate-700">
+                {{ $receipts->firstItem() ?? 0 }}
+            </span>
+                            to
+                            <span class="font-semibold text-slate-700">
+                {{ $receipts->lastItem() ?? 0 }}
+            </span>
+                            of
+                            <span class="font-semibold text-slate-700">
+                {{ $receipts->total() }}
+            </span>
+                            receipts
+                        </p>
 
-                </div>
+                        {{-- Pagination --}}
+                        <div>
+                            {{ $receipts->onEachSide(1)->links('pagination.receipts') }}
+                        </div>
+
+                    </div>
+                @endif
 
             @endif
 

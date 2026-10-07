@@ -39,7 +39,7 @@ class ReceiptController extends Controller
 
         $receipts = $query
             ->latest()
-            ->paginate(20)
+            ->paginate(3)
             ->withQueryString();
 
         $cities = City::where('status', true)
