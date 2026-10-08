@@ -60,6 +60,12 @@ class DashboardController extends Controller
 
         $receiptIds = (clone $receiptQuery)->pluck('id');
 
+        $recentReceipts = (clone $receiptQuery)
+            ->with('city')
+            ->latest('id')
+            ->take(10)
+            ->get();
+
 
         /*
         |--------------------------------------------------------------------------
@@ -126,7 +132,8 @@ class DashboardController extends Controller
             'chartLabels',
             'chartData',
             'fromDate',
-            'toDate'
+            'toDate',
+            'recentReceipts'
         ));
     }
 }

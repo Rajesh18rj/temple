@@ -587,6 +587,385 @@
 
             </div>
 
+
+        </div>
+
+        {{-- Recent Receipts --}}
+        <div class="mt-6 overflow-hidden rounded-[30px] border border-slate-200/70 bg-white shadow-[0_8px_30px_rgba(15,23,42,0.04)]">
+
+            {{-- Header --}}
+            <div class="relative overflow-hidden border-b border-slate-100">
+
+                {{-- Soft background glow --}}
+                <div class="pointer-events-none absolute -right-16 -top-20 h-44 w-44
+                    rounded-full bg-violet-100/50 blur-3xl"></div>
+
+                <div class="relative flex items-center justify-between gap-4 px-6 py-6 sm:px-7">
+
+                    <div class="flex items-center gap-4">
+
+                        {{-- Icon --}}
+                        <div class="relative flex h-12 w-12 shrink-0 items-center justify-center
+                            rounded-2xl
+                            bg-gradient-to-br from-violet-500 to-fuchsia-500
+                            text-white
+                            shadow-lg shadow-violet-200/50">
+
+                            <i class="fa-solid fa-receipt text-sm"></i>
+
+                            {{-- Small status dot --}}
+                            <span class="absolute -right-1 -top-1 flex h-4 w-4
+                                 items-center justify-center rounded-full
+                                 border-2 border-white bg-emerald-500">
+
+                        <span class="h-1.5 w-1.5 rounded-full bg-white"></span>
+
+                    </span>
+
+                        </div>
+
+                        {{-- Heading --}}
+                        <div>
+
+                            <div class="flex items-center gap-2">
+
+                                <h3 class="text-[15px] font-bold tracking-tight text-slate-800">
+                                    Recent Receipts
+                                </h3>
+
+                                <span class="rounded-full bg-violet-50 px-2 py-0.5
+                                     text-[9px] font-bold uppercase
+                                     tracking-wider text-violet-600">
+                            Latest
+                        </span>
+
+                            </div>
+
+                            <p class="mt-1 text-xs text-slate-400">
+                                Your latest 10 receipt transactions
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    {{-- View All --}}
+                    <a href="{{ route('receipts.index') }}"
+                       class="group hidden items-center gap-2 rounded-xl
+                      border border-slate-200 bg-white px-3.5 py-2
+                      text-xs font-semibold text-slate-500
+                      shadow-sm transition-all duration-200
+                      hover:border-violet-200
+                      hover:bg-violet-50
+                      hover:text-violet-600
+                      sm:inline-flex">
+
+                        <span>View All</span>
+
+                        <span class="flex h-5 w-5 items-center justify-center
+                             rounded-md bg-slate-50
+                             transition group-hover:bg-violet-100">
+
+                    <i class="fa-solid fa-arrow-right text-[8px]
+                              transition-transform duration-200
+                              group-hover:translate-x-0.5"></i>
+
+                </span>
+
+                    </a>
+
+                </div>
+
+            </div>
+
+
+            {{-- Receipt List --}}
+            <div class="p-3 sm:p-4">
+
+                @forelse($recentReceipts as $index => $receipt)
+
+                    <a href="{{ route('receipts.view', $receipt) }}"
+                       class="group relative mb-1 block overflow-hidden rounded-2xl
+                      border border-transparent
+                      px-3 py-3.5
+                      transition-all duration-200
+                      hover:border-violet-100
+                      hover:bg-gradient-to-r
+                      hover:from-violet-50/70
+                      hover:to-white
+                      hover:shadow-sm
+                      sm:px-4">
+
+                        {{-- Hover accent --}}
+                        <span class="absolute left-0 top-1/2 h-0 w-1
+                             -translate-y-1/2 rounded-full
+                             bg-violet-500
+                             transition-all duration-200
+                             group-hover:h-10"></span>
+
+
+                        <div class="flex items-center gap-3.5 sm:gap-4">
+
+                            {{-- Number --}}
+                            <div class="hidden w-7 shrink-0 text-center sm:block">
+
+                        <span class="text-[10px] font-bold tracking-wider
+                                     text-slate-300
+                                     transition-colors
+                                     group-hover:text-violet-400">
+
+                            {{ str_pad($index + 1, 2, '0', STR_PAD_LEFT) }}
+
+                        </span>
+
+                            </div>
+
+
+                            {{-- Receipt Icon --}}
+                            <div class="flex h-11 w-11 shrink-0 items-center justify-center
+                                rounded-2xl
+                                border border-slate-100
+                                bg-slate-50
+                                text-slate-400
+                                transition-all duration-200
+                                group-hover:border-violet-100
+                                group-hover:bg-violet-100
+                                group-hover:text-violet-600">
+
+                                <i class="fa-solid fa-file-invoice text-sm"></i>
+
+                            </div>
+
+
+                            {{-- Main Content --}}
+                            <div class="min-w-0 flex-1">
+
+                                {{-- Name + Receipt Number --}}
+                                <div class="flex flex-col gap-1.5
+                                    sm:flex-row sm:items-center sm:gap-2.5">
+
+                                    {{-- Name --}}
+                                    <p class="truncate text-sm font-bold text-slate-700
+                                      transition-colors
+                                      group-hover:text-violet-600">
+
+                                        {{ $receipt->name }}
+
+                                    </p>
+
+
+                                    {{-- Receipt Number --}}
+                                    <span class="w-fit rounded-lg
+                                         border border-violet-100
+                                         bg-violet-50
+                                         px-2 py-1
+                                         font-mono text-[9px]
+                                         font-bold tracking-wide
+                                         text-violet-600">
+
+                                {{ $receipt->receipt_number }}
+
+                            </span>
+
+                                </div>
+
+
+                                {{-- City + Date --}}
+                                <div class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1.5">
+
+                                    {{-- City --}}
+                                    <span class="inline-flex items-center gap-1.5
+                                         text-[10px] font-medium text-slate-400">
+
+                                <i class="fa-solid fa-location-dot
+                                          text-[8px] text-slate-300"></i>
+
+                                {{ $receipt->city?->name ?? '—' }}
+
+                            </span>
+
+
+                                    {{-- Separator --}}
+                                    <span class="hidden h-1 w-1 rounded-full
+                                         bg-slate-300 sm:block"></span>
+
+
+                                    {{-- Date --}}
+                                    <span class="inline-flex items-center gap-1.5
+                                         text-[10px] font-medium text-slate-400">
+
+                                <i class="fa-regular fa-calendar
+                                          text-[8px] text-slate-300"></i>
+
+                                {{ $receipt->date
+                                    ? $receipt->date->format('d M Y')
+                                    : '—' }}
+
+                            </span>
+
+                                </div>
+
+                            </div>
+
+
+                            {{-- Amount --}}
+                            <div class="hidden shrink-0 text-right sm:block">
+
+                                <p class="text-sm font-bold text-slate-700">
+                                    ₹{{ number_format($receipt->receiptDetails->sum('amount'), 2) }}
+                                </p>
+
+                                <p class="mt-0.5 text-[9px] font-medium
+                                  uppercase tracking-wider text-slate-400">
+                                    Amount
+                                </p>
+
+                            </div>
+
+
+                            {{-- Type --}}
+                            <div class="hidden shrink-0 lg:block">
+
+                                @if($receipt->receipt_type === 'walk_in')
+
+                                    <span class="inline-flex items-center gap-2
+                                         rounded-full
+                                         border border-emerald-100
+                                         bg-emerald-50/80
+                                         px-3 py-1.5
+                                         text-[9px] font-bold
+                                         text-emerald-600">
+
+                                <span class="relative flex h-1.5 w-1.5">
+
+                                    <span class="absolute inline-flex h-full w-full
+                                                 animate-ping rounded-full
+                                                 bg-emerald-400 opacity-50"></span>
+
+                                    <span class="relative inline-flex h-1.5 w-1.5
+                                                 rounded-full bg-emerald-500"></span>
+
+                                </span>
+
+                                Walk-in
+
+                            </span>
+
+                                @else
+
+                                    <span class="inline-flex items-center gap-2
+                                         rounded-full
+                                         border border-violet-100
+                                         bg-violet-50/80
+                                         px-3 py-1.5
+                                         text-[9px] font-bold
+                                         text-violet-600">
+
+                                <span class="h-1.5 w-1.5 rounded-full
+                                             bg-violet-500"></span>
+
+                                Registered
+
+                            </span>
+
+                                @endif
+
+                            </div>
+
+
+                            {{-- Arrow --}}
+                            <div class="flex h-9 w-9 shrink-0 items-center justify-center
+                                rounded-xl
+                                border border-transparent
+                                text-slate-300
+                                transition-all duration-200
+                                group-hover:border-violet-100
+                                group-hover:bg-white
+                                group-hover:text-violet-600
+                                group-hover:shadow-sm">
+
+                                <i class="fa-solid fa-chevron-right text-[9px]
+                                  transition-transform duration-200
+                                  group-hover:translate-x-0.5"></i>
+
+                            </div>
+
+                        </div>
+
+                    </a>
+
+                @empty
+
+                    {{-- Empty State --}}
+                    <div class="px-6 py-14 text-center">
+
+                        <div class="mx-auto flex h-16 w-16 items-center justify-center
+                            rounded-[20px]
+                            bg-gradient-to-br from-violet-50 to-fuchsia-50
+                            text-violet-400">
+
+                            <i class="fa-solid fa-receipt text-xl"></i>
+
+                        </div>
+
+                        <p class="mt-4 text-sm font-bold text-slate-700">
+                            No recent receipts
+                        </p>
+
+                        <p class="mx-auto mt-1 max-w-xs text-xs leading-5 text-slate-400">
+                            Receipts will appear here automatically once they are created.
+                        </p>
+
+                    </div>
+
+                @endforelse
+
+            </div>
+
+
+            {{-- Footer --}}
+            @if($recentReceipts->count())
+
+                <div class="border-t border-slate-100
+                    bg-slate-50/40 px-6 py-3.5 sm:px-7">
+
+                    <div class="flex items-center justify-between gap-4">
+
+                        <div class="flex items-center gap-2">
+
+                    <span class="flex h-6 w-6 items-center justify-center
+                                 rounded-lg bg-emerald-50 text-emerald-500">
+
+                        <i class="fa-solid fa-bolt text-[9px]"></i>
+
+                    </span>
+
+                            <span class="text-[10px] font-medium text-slate-400">
+                        Showing latest activity
+                    </span>
+
+                        </div>
+
+
+                        {{-- Mobile View All --}}
+                        <a href="{{ route('receipts.index') }}"
+                           class="inline-flex items-center gap-1.5
+                          text-[10px] font-bold text-violet-500
+                          transition hover:text-violet-700 sm:hidden">
+
+                            View All
+
+                            <i class="fa-solid fa-arrow-right text-[8px]"></i>
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            @endif
+
         </div>
 
     </div>
@@ -595,9 +974,6 @@
     {{-- ============================================================= --}}
     {{-- CHART.JS --}}
     {{-- ============================================================= --}}
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script>
