@@ -97,4 +97,8 @@ Route::post('/register-receipt/payment/{receipt}', [RegisterReceiptController::c
 Route::get('/register-receipt/success/{receipt}', [RegisterReceiptController::class, 'success'])
     ->name('register-receipts.success');
 
+Route::post(
+    '/register-receipts/cities',
+    [RegisterReceiptController::class, 'storeCity']
+)->name('register-receipts.cities.store');
 require __DIR__.'/auth.php';

@@ -652,276 +652,251 @@
                     </div>
 
 
+
+                    {{-- Categories --}}
+
+
                     {{-- Categories --}}
                     <div class="p-5 sm:p-6 lg:p-8">
 
-                        <div class="space-y-3">
+                        @php
+                            $selectedCategories = old(
+                                'categories',
+                                $receipt->receiptDetails->pluck('category_id')->toArray()
+                            );
 
-                            @php
-                                $selectedCategories = old(
-                                    'categories',
-                                    $receipt->receiptDetails
-                                        ->pluck('category_id')
-                                        ->toArray()
-                                );
+                            $existingAmounts = [];
 
-                                $existingAmounts = [];
+                            foreach ($receipt->receiptDetails as $detail) {
+                                $existingAmounts[$detail->category_id] = $detail->amount;
+                            }
+                        @endphp
 
-                                foreach ($receipt->receiptDetails as $detail) {
-                                    $existingAmounts[$detail->category_id] = $detail->amount;
-                                }
-                            @endphp
-
+                        <div class="space-y-5">
 
                             @forelse($categories as $category)
 
                                 @php
-                                    $isSelected = in_array(
-                                        $category->id,
-                                        $selectedCategories
-                                    );
+                                    $hasSubcategories = $category->subcategories->isNotEmpty();
 
-                                    $manualAmount = old(
-                                        'amounts.' . $category->id,
-                                        $existingAmounts[$category->id] ?? ''
-                                    );
+                                    $options = $hasSubcategories
+                                        ? $category->subcategories
+                                        : collect([$category]);
                                 @endphp
 
+                                <div>
 
-                                <div class="category-row
-                                        border border-slate-200
-                                        rounded-lg
-                                        p-4
-                                        transition
-                                        {{ $isSelected
-                                            ? 'border-violet-300 bg-violet-50/40'
-                                            : 'bg-white' }}">
+                                    {{-- Main category heading --}}
+                                    @if($hasSubcategories)
+                                        <div class="flex flex-wrap items-center gap-2 mb-3">
 
-                                    <div class="flex flex-col
-                                            sm:flex-row
-                                            sm:items-center
-                                            gap-4">
+                                            <svg class="w-5 h-5 text-violet-600 shrink-0"
+                                                 fill="none"
+                                                 stroke="currentColor"
+                                                 viewBox="0 0 24 24">
+                                                <path stroke-linecap="round"
+                                                      stroke-linejoin="round"
+                                                      stroke-width="1.8"
+                                                      d="M3 7a2 2 0 012-2h5l2 2h7a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/>
+                                            </svg>
 
-
-                                        {{-- Checkbox --}}
-                                        <div class="flex items-center
-                                                gap-3
-                                                flex-1">
-
-                                            <input type="checkbox"
-                                                   id="category_{{ $category->id }}"
-                                                   name="categories[]"
-                                                   value="{{ $category->id }}"
-                                                   {{ $isSelected ? 'checked' : '' }}
-                                                   class="category-checkbox
-                                                      w-4 h-4
-                                                      rounded
-                                                      border-slate-300
-                                                      text-violet-600
-                                                      focus:ring-violet-500">
-
-                                            <label for="category_{{ $category->id }}"
-                                                   class="cursor-pointer">
-
-                                            <span class="block
-                                                         text-sm
-                                                         font-semibold
-                                                         text-slate-800">
-
+                                            <h3 class="text-sm font-semibold text-slate-800">
                                                 {{ $category->name }}
+                                            </h3>
 
+                                            <span class="inline-flex items-center rounded
+                                     bg-violet-50 px-2 py-1
+                                     text-xs font-medium text-violet-600">
+                            Main category
+                        </span>
+
+                                        </div>
+                                    @endif
+
+                                    {{-- Subcategories or standalone category --}}
+                                    <div class="{{ $hasSubcategories
+                    ? 'ml-2 sm:ml-3 pl-4 border-l-2 border-violet-200 space-y-3'
+                    : 'space-y-3' }}">
+
+                                        @foreach($options as $option)
+
+                                            @php
+                                                $isSelected = in_array(
+                                                    $option->id,
+                                                    $selectedCategories
+                                                );
+
+                                                $manualAmount = old(
+                                                    'amounts.' . $option->id,
+                                                    $existingAmounts[$option->id] ?? ''
+                                                );
+                                            @endphp
+
+                                            <div class="category-row rounded-lg border p-3 sm:p-4
+                            transition-colors
+                            {{ $isSelected
+                                ? 'border-violet-300 bg-violet-50/40'
+                                : 'border-slate-200 bg-white' }}">
+
+                                                <div class="flex flex-col sm:flex-row
+                                        sm:items-center gap-3 sm:gap-4">
+
+                                                    {{-- Checkbox and category name --}}
+                                                    <div class="flex items-start gap-3 flex-1 min-w-0">
+
+                                                        @if($hasSubcategories)
+                                                            <svg class="w-4 h-4 mt-0.5 shrink-0
+                                                    text-violet-500"
+                                                                 fill="none"
+                                                                 stroke="currentColor"
+                                                                 viewBox="0 0 24 24">
+                                                                <path stroke-linecap="round"
+                                                                      stroke-linejoin="round"
+                                                                      stroke-width="1.8"
+                                                                      d="M5 5v8a4 4 0 004 4h2m-3-4 3 4 3-4"/>
+                                                            </svg>
+                                                        @endif
+
+                                                        <input
+                                                            type="checkbox"
+                                                            id="category_{{ $option->id }}"
+                                                            name="categories[]"
+                                                            value="{{ $option->id }}"
+                                                            {{ $isSelected ? 'checked' : '' }}
+                                                            class="category-checkbox mt-0.5
+                                               w-4 h-4 shrink-0 rounded
+                                               border-slate-300
+                                               text-violet-600
+                                               focus:ring-violet-500">
+
+                                                        <label
+                                                            for="category_{{ $option->id }}"
+                                                            class="cursor-pointer min-w-0">
+
+                                        <span class="block text-sm font-medium
+                                                     text-slate-800">
+                                            {{ $option->name }}
+                                        </span>
+
+                                                            <span class="block text-xs
+                                                     text-slate-500 mt-1">
+                                            {{ $hasSubcategories
+                                                ? 'Subcategory'
+                                                : '' }}{{ $hasSubcategories ? ' · ' : '' }}{{ $option->amount !== null
+                                                ? 'Fixed amount'
+                                                : 'Manual amount' }}
+                                        </span>
+
+                                                        </label>
+                                                    </div>
+
+                                                    {{-- Amount --}}
+                                                    <div class="w-full sm:w-44 shrink-0">
+
+                                                        @if($option->amount !== null)
+
+                                                            <div class="flex items-center gap-2
+                                                    px-3 py-2.5 rounded-md
+                                                    border border-slate-200
+                                                    bg-slate-50 text-sm
+                                                    text-slate-600">
+
+                                                                <span class="text-slate-400">₹</span>
+
+                                                                <span class="font-medium">
+                                                {{ number_format($option->amount, 2) }}
                                             </span>
 
-                                                @if($category->amount !== null)
+                                                            </div>
 
-                                                    <span class="block
-                                                             text-xs
-                                                             text-slate-500
-                                                             mt-0.5">
+                                                        @else
 
-                                                    Fixed amount
+                                                            <div class="relative">
 
-                                                </span>
+                                            <span class="absolute left-3
+                                                         top-1/2
+                                                         -translate-y-1/2
+                                                         text-sm text-slate-400">
+                                                ₹
+                                            </span>
 
-                                                @else
+                                                                <input
+                                                                    type="number"
+                                                                    name="amounts[{{ $option->id }}]"
+                                                                    value="{{ $manualAmount }}"
+                                                                    min="0"
+                                                                    step="0.01"
+                                                                    placeholder="Enter amount"
+                                                                    {{ $isSelected ? '' : 'disabled' }}
+                                                                    class="manual-amount w-full
+                                                       pl-7 pr-3 py-2.5
+                                                       rounded-md border
+                                                       border-slate-200
+                                                       bg-white text-sm
+                                                       text-slate-800
+                                                       outline-none
+                                                       focus:border-violet-400
+                                                       focus:ring-2
+                                                       focus:ring-violet-100
+                                                       disabled:bg-slate-100
+                                                       disabled:text-slate-400">
+                                                            </div>
 
-                                                    <span class="block
-                                                             text-xs
-                                                             text-slate-500
-                                                             mt-0.5">
+                                                        @endif
 
-                                                    Manual amount
-
-                                                </span>
-
-                                                @endif
-
-                                            </label>
-
-                                        </div>
-
-
-                                        {{-- Amount --}}
-                                        <div class="w-full sm:w-44">
-
-                                            @if($category->amount !== null)
-
-                                                <div class="relative">
-
-                                                <span class="absolute
-                                                             left-3
-                                                             top-1/2
-                                                             -translate-y-1/2
-                                                             text-sm
-                                                             font-semibold
-                                                             text-slate-400">
-
-                                                    ₹
-
-                                                </span>
-
-                                                    <input type="text"
-                                                           value="{{ number_format($category->amount, 2) }}"
-                                                           disabled
-                                                           class="w-full
-                                                              pl-8
-                                                              pr-3
-                                                              py-2.5
-                                                              rounded-lg
-                                                              border
-                                                              border-slate-200
-                                                              bg-slate-100
-                                                              text-sm
-                                                              font-semibold
-                                                              text-slate-600">
+                                                    </div>
 
                                                 </div>
 
-                                            @else
+                                                {{-- Amount validation --}}
+                                                @error('amounts.' . $option->id)
+                                                <p class="text-xs text-red-600 mt-2">
+                                                    {{ $message }}
+                                                </p>
+                                                @enderror
 
-                                                <div class="relative">
+                                            </div>
 
-                                                <span class="absolute
-                                                             left-3
-                                                             top-1/2
-                                                             -translate-y-1/2
-                                                             text-sm
-                                                             font-semibold
-                                                             text-slate-400">
-
-                                                    ₹
-
-                                                </span>
-
-                                                    <input type="number"
-                                                           name="amounts[{{ $category->id }}]"
-                                                           value="{{ $manualAmount }}"
-                                                           min="0"
-                                                           step="0.01"
-                                                           placeholder="Enter amount"
-                                                           {{ $isSelected ? '' : 'disabled' }}
-                                                           class="manual-amount
-                                                              w-full
-                                                              pl-8
-                                                              pr-3
-                                                              py-2.5
-                                                              rounded-lg
-                                                              border
-                                                              border-slate-200
-                                                              bg-white
-                                                              text-sm
-                                                              text-slate-800
-                                                              outline-none
-                                                              focus:border-violet-400
-                                                              focus:ring-2
-                                                              focus:ring-violet-100
-                                                              disabled:bg-slate-100
-                                                              disabled:text-slate-400
-                                                              transition">
-
-                                                </div>
-
-                                            @endif
-
-                                        </div>
+                                        @endforeach
 
                                     </div>
-
-
-                                    @error('amounts.' . $category->id)
-
-                                    <p class="text-xs
-                                              text-red-600
-                                              mt-2">
-
-                                        {{ $message }}
-
-                                    </p>
-
-                                    @enderror
-
                                 </div>
 
                             @empty
 
-                                <div class="py-12 text-center">
-
-                                    <p class="text-sm text-slate-500">
-                                        No categories available.
-                                    </p>
-
+                                <div class="py-10 text-center text-sm text-slate-500">
+                                    No categories available.
                                 </div>
 
                             @endforelse
 
                         </div>
 
+                        {{-- Total amount --}}
+                        <div class="mt-6 flex items-center justify-between gap-3
+                rounded-lg border border-slate-200
+                bg-slate-50 px-4 py-4">
 
-                        {{-- Total --}}
-                        <div class="mt-6
-                                flex flex-col
-                                sm:flex-row
-                                sm:items-center
-                                sm:justify-between
-                                gap-3
-                                px-5 py-4
-                                rounded-lg
-                                bg-violet-50
-                                border border-violet-100">
-
-                        <span class="text-sm
-                                     font-semibold
-                                     text-slate-700">
-
-                            Total Amount
-
-                        </span>
+        <span class="text-sm font-semibold text-slate-700">
+            Total Amount
+        </span>
 
                             <span id="totalAmount"
-                                  class="text-xl
-                                     font-bold
-                                     text-violet-700">
-
-                            ₹0.00
-
-                        </span>
+                                  class="text-lg font-bold text-violet-700">
+            ₹0.00
+        </span>
 
                         </div>
 
-
                         @error('categories')
-
-                        <p class="text-xs
-                                  text-red-600
-                                  mt-2">
-
+                        <p class="mt-2 text-xs text-red-600">
                             {{ $message }}
-
                         </p>
-
                         @enderror
 
                     </div>
+
+
 
                 </div>
 

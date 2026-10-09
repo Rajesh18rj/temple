@@ -125,6 +125,60 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
 
+                        {{-- Category Type --}}
+                        <div>
+                            <label for="category_type"
+                                   class="block text-sm font-medium text-slate-700 mb-2">
+                                Category Type <span class="text-red-500">*</span>
+                            </label>
+
+                            <select id="category_type"
+                                    name="category_type"
+                                    class="w-full px-4 py-2.5 rounded-lg border border-slate-200 bg-white
+                                           text-sm text-slate-800 outline-none
+                                           focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition">
+                                <option value="main"
+                                    {{ old('category_type', $category->parent_id ? 'sub' : 'main') === 'main' ? 'selected' : '' }}>
+                                    Main Category
+                                </option>
+                                <option value="sub"
+                                    {{ old('category_type', $category->parent_id ? 'sub' : 'main') === 'sub' ? 'selected' : '' }}>
+                                    Subcategory
+                                </option>
+                            </select>
+
+                            @error('category_type')
+                            <p class="text-xs font-medium text-red-600 mt-1.5">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        {{-- Parent Category --}}
+                        <div id="parent_category_wrapper"
+                             class="{{ old('category_type', $category->parent_id ? 'sub' : 'main') === 'sub' ? '' : 'hidden' }}">
+                            <label for="parent_id"
+                                   class="block text-sm font-medium text-slate-700 mb-2">
+                                Parent Category <span class="text-red-500">*</span>
+                            </label>
+
+                            <select id="parent_id"
+                                    name="parent_id"
+                                    class="w-full px-4 py-2.5 rounded-lg border border-slate-200 bg-white
+                                           text-sm text-slate-800 outline-none
+                                           focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition">
+                                <option value="">Select main category</option>
+                                @foreach($parentCategories as $parentCategory)
+                                    <option value="{{ $parentCategory->id }}"
+                                        {{ (string) old('parent_id', $category->parent_id) === (string) $parentCategory->id ? 'selected' : '' }}>
+                                        {{ $parentCategory->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+
+                            @error('parent_id')
+                            <p class="text-xs font-medium text-red-600 mt-1.5">{{ $message }}</p>
+                            @enderror
+                        </div>
+
                         {{-- Category Name --}}
                         <div class="md:col-span-2">
 
@@ -322,5 +376,27 @@
         </div>
 
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const categoryType = document.getElementById('category_type');
+            const parentWrapper = document.getElementById('parent_category_wrapper');
+            const parentSelect = document.getElementById('parent_id');
+
+            function toggleParentCategory() {
+                const isSubcategory = categoryType.value === 'sub';
+
+                parentWrapper.classList.toggle('hidden', !isSubcategory);
+                parentSelect.required = isSubcategory;
+
+                if (!isSubcategory) {
+                    parentSelect.value = '';
+                }
+            }
+
+            categoryType.addEventListener('change', toggleParentCategory);
+            toggleParentCategory();
+        });
+    </script>
 
 @endsection

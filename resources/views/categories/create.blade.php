@@ -129,6 +129,61 @@
                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-x-10 gap-y-7">
 
 
+                            {{-- Category Type --}}
+                            <div>
+                                <label for="category_type"
+                                       class="text-sm font-semibold text-[#18213d] mb-2.5 flex items-center gap-2">
+                                    Category Type
+                                    <span class="text-rose-500">*</span>
+                                </label>
+
+                                <select id="category_type"
+                                        name="category_type"
+                                        class="w-full px-4 py-3.5 rounded-xl border border-slate-200
+                                               bg-slate-50/50 text-sm text-[#18213d] outline-none
+                                               focus:bg-white focus:border-violet-400
+                                               focus:ring-4 focus:ring-violet-100 transition-all">
+                                    <option value="main" {{ old('category_type', 'main') === 'main' ? 'selected' : '' }}>
+                                        Main Category
+                                    </option>
+                                    <option value="sub" {{ old('category_type') === 'sub' ? 'selected' : '' }}>
+                                        Subcategory
+                                    </option>
+                                </select>
+
+                                @error('category_type')
+                                <p class="text-xs font-medium text-rose-600 mt-2">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            {{-- Parent Category --}}
+                            <div id="parent_category_wrapper" class="{{ old('category_type') === 'sub' ? '' : 'hidden' }}">
+                                <label for="parent_id"
+                                       class="text-sm font-semibold text-[#18213d] mb-2.5 flex items-center gap-2">
+                                    Parent Category
+                                    <span class="text-rose-500">*</span>
+                                </label>
+
+                                <select id="parent_id"
+                                        name="parent_id"
+                                        class="w-full px-4 py-3.5 rounded-xl border border-slate-200
+                                               bg-slate-50/50 text-sm text-[#18213d] outline-none
+                                               focus:bg-white focus:border-violet-400
+                                               focus:ring-4 focus:ring-violet-100 transition-all">
+                                    <option value="">Select main category</option>
+                                    @foreach($parentCategories as $parentCategory)
+                                        <option value="{{ $parentCategory->id }}"
+                                            {{ (string) old('parent_id') === (string) $parentCategory->id ? 'selected' : '' }}>
+                                            {{ $parentCategory->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+
+                                @error('parent_id')
+                                <p class="text-xs font-medium text-rose-600 mt-2">{{ $message }}</p>
+                                @enderror
+                            </div>
+
                             {{-- Category Name --}}
                             <div class="lg:col-span-2">
 
@@ -433,4 +488,27 @@
 
     </div>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const categoryType = document.getElementById('category_type');
+            const parentWrapper = document.getElementById('parent_category_wrapper');
+            const parentSelect = document.getElementById('parent_id');
+
+            function toggleParentCategory() {
+                const isSubcategory = categoryType.value === 'sub';
+
+                parentWrapper.classList.toggle('hidden', !isSubcategory);
+                parentSelect.required = isSubcategory;
+
+                if (!isSubcategory) {
+                    parentSelect.value = '';
+                }
+            }
+
+            categoryType.addEventListener('change', toggleParentCategory);
+            toggleParentCategory();
+        });
+    </script>
+
 @endsection
+

@@ -7,170 +7,218 @@ use App\Models\Receipt;
 use App\Models\ReceiptDetail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class ReceiptDetailController extends Controller
 {
+    /*
+    |--------------------------------------------------------------------------
+    | Show Receipt Details Form
+    |--------------------------------------------------------------------------
+    */
+
     public function create(Receipt $receipt)
     {
-        $categories = Category::orderBy('display_order')->get();
+        // Load parent categories with their subcategories
+        $categories = Category::with([
+            'subcategories' => function ($query) {
+                $query->orderBy('display_order')
+                    ->orderBy('name');
+            }
+        ])
+            ->whereNull('parent_id')
+            ->orderBy('display_order')
+            ->orderBy('name')
+            ->get();
 
-        return view('receipts.details', compact('receipt', 'categories'));
+        return view('receipts.details', compact(
+            'receipt',
+            'categories'
+        ));
     }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | View Receipt
+    |--------------------------------------------------------------------------
+    */
 
     public function show(Receipt $receipt)
     {
-        $receipt->load('receiptDetails.category', 'city');
+        $receipt->load('receiptDetails.category.parent', 'city');
 
         return view('receipts.view', compact('receipt'));
     }
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | Save Receipt Details
+    |--------------------------------------------------------------------------
+    */
+
+
     public function store(Request $request, Receipt $receipt)
     {
-        $request->validate([
-            'categories' => 'required|array|min:1',
-            'categories.*' => 'exists:categories,id',
-
-            'amounts' => 'nullable|array',
-            'amounts.*' => 'nullable|numeric|min:0.01',
-
-            // Payment proof is optional
-            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+        // Validate submitted data.
+        $validated = $request->validate([
+            'categories' => [
+                'required',
+                'array',
+                'min:1',
+            ],
+            'categories.*' => [
+                'required',
+                'integer',
+                'distinct',
+                'exists:categories,id',
+            ],
+            'amounts' => [
+                'nullable',
+                'array',
+            ],
+            'amounts.*' => [
+                'nullable',
+                'numeric',
+                'min:0.01',
+            ],
+            'image' => [
+                'nullable',
+                'image',
+                'mimes:jpg,jpeg,png,webp',
+                'max:2048',
+            ],
         ]);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Check Manual Amount Categories
-        |--------------------------------------------------------------------------
-        */
+        // Load selected categories and determine which have children.
+        $selectedCategories = Category::withCount('subcategories')
+            ->whereIn('id', $validated['categories'])
+            ->get()
+            ->keyBy('id');
 
-        foreach ($request->categories as $categoryId) {
+        // Validate category selection and manual amounts.
+        foreach ($validated['categories'] as $categoryId) {
+            $category = $selectedCategories->get($categoryId);
 
-            $category = Category::findOrFail($categoryId);
+            if (!$category) {
+                return back()
+                    ->withInput()
+                    ->with('error', 'One or more selected categories are invalid.');
+            }
 
+            // A category with children cannot be selected directly.
+            if ($category->subcategories_count > 0) {
+                return back()
+                    ->withInput()
+                    ->with('error', 'Please select a subcategory instead of its parent.');
+            }
+
+            // Require a valid amount for categories without a fixed amount.
             if ($category->amount === null) {
-
                 $amount = $request->input("amounts.$categoryId");
 
-                if ($amount === null || $amount <= 0) {
+                if (
+                    $amount === null ||
+                    $amount === '' ||
+                    !is_numeric($amount) ||
+                    (float) $amount < 0.01
+                ) {
                     return back()
                         ->withInput()
-                        ->with(
-                            'error',
-                            "Please enter an amount for {$category->name}."
-                        );
+                        ->withErrors([
+                            "amounts.$categoryId" =>
+                                "Please enter a valid amount for {$category->name}.",
+                        ]);
                 }
             }
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Save Receipt Details + Payment Proof
-        |--------------------------------------------------------------------------
-        */
+        try {
+            DB::transaction(function () use (
+                $request,
+                $receipt,
+                $validated,
+                $selectedCategories
+            ) {
+                // Upload optional payment proof.
+                if ($request->hasFile('image')) {
+                    $file = $request->file('image');
 
-        DB::transaction(function () use ($request, $receipt) {
+                    if (!$file->isValid()) {
+                        throw new \RuntimeException(
+                            'Payment proof upload failed: ' .
+                            $file->getErrorMessage()
+                        );
+                    }
 
-            /*
-            |--------------------------------------------------------------------------
-            | Payment Proof
-            |--------------------------------------------------------------------------
-            */
+                    $uploadPath = public_path('uploads/receipts');
 
-            if ($request->hasFile('image')) {
+                    if (
+                        !is_dir($uploadPath) &&
+                        !mkdir($uploadPath, 0755, true) &&
+                        !is_dir($uploadPath)
+                    ) {
+                        throw new \RuntimeException(
+                            'Unable to create the payment-proof upload directory.'
+                        );
+                    }
 
-                $file = $request->file('image');
+                    if (!is_writable($uploadPath)) {
+                        throw new \RuntimeException(
+                            'The payment-proof upload directory is not writable.'
+                        );
+                    }
 
-                // Check upload validity
-                if (!$file->isValid()) {
-                    throw new \Exception(
-                        'Payment proof upload failed: ' . $file->getErrorMessage()
-                    );
+                    $filename = uniqid('receipt_', true) .
+                        '.' . $file->extension();
+
+                    $file->move($uploadPath, $filename);
+
+                    if (!file_exists($uploadPath . '/' . $filename)) {
+                        throw new \RuntimeException(
+                            'Payment proof could not be saved.'
+                        );
+                    }
+
+                    $receipt->update([
+                        'image' => 'uploads/receipts/' . $filename,
+                    ]);
                 }
 
-                // Public upload directory
-                $uploadPath = public_path('uploads/receipts');
+                // Replace existing receipt details.
+                $receipt->receiptDetails()->delete();
 
-                // Create directory if it does not exist
-                if (!is_dir($uploadPath)) {
+                // Save selected subcategories or standalone categories.
+                foreach ($validated['categories'] as $categoryId) {
+                    $category = $selectedCategories->get($categoryId);
 
-                    mkdir($uploadPath, 0755, true);
+                    // Fixed amounts always come from the database.
+                    $amount = $category->amount !== null
+                        ? $category->amount
+                        : $request->input("amounts.$categoryId");
+
+                    ReceiptDetail::create([
+                        'receipt_id' => $receipt->id,
+                        'category_id' => $category->id,
+                        'amount' => $amount,
+                    ]);
                 }
+            });
+        } catch (\Throwable $e) {
+            report($e);
 
-                // Check directory
-                if (!is_dir($uploadPath)) {
-                    throw new \Exception(
-                        'Unable to create upload directory: ' . $uploadPath
-                    );
-                }
-
-                // Generate unique filename
-                $filename = time()
-                    . '_'
-                    . uniqid()
-                    . '.'
-                    . $file->getClientOriginalExtension();
-
-                // Move uploaded file
-                $file->move(
-                    $uploadPath,
-                    $filename
+            return back()
+                ->withInput()
+                ->with(
+                    'error',
+                    'Unable to save receipt details. Please check the information and try again.'
                 );
-
-                // Check file exists
-                if (!file_exists($uploadPath . '/' . $filename)) {
-                    throw new \Exception(
-                        'Payment proof could not be saved.'
-                    );
-                }
-
-                // Save path in database
-                $receipt->update([
-                    'image' => 'uploads/receipts/' . $filename,
-                ]);
-            }
-
-            /*
-            |--------------------------------------------------------------------------
-            | Remove Old Receipt Details
-            |--------------------------------------------------------------------------
-            */
-
-            $receipt->receiptDetails()->delete();
-
-            /*
-            |--------------------------------------------------------------------------
-            | Save Selected Categories
-            |--------------------------------------------------------------------------
-            */
-
-            foreach ($request->categories as $categoryId) {
-
-                $category = Category::findOrFail($categoryId);
-
-                if ($category->amount !== null) {
-
-                    $amount = $category->amount;
-
-                } else {
-
-                    $amount = $request->input(
-                        "amounts.$categoryId"
-                    );
-                }
-
-                ReceiptDetail::create([
-                    'receipt_id' => $receipt->id,
-                    'category_id' => $category->id,
-                    'amount' => $amount,
-                ]);
-            }
-        });
+        }
 
         return redirect()
             ->route('receipts.index')
-            ->with(
-                'success',
-                'Receipt details saved successfully.'
-            );
+            ->with('success', 'Receipt details saved successfully.');
     }
+
 }

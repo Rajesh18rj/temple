@@ -263,35 +263,33 @@
         {{-- ========================================================= --}}
         {{-- CATEGORY-WISE CONTRIBUTION --}}
         {{-- ========================================================= --}}
+
+        {{-- ========================================================= --}}
+        {{-- CATEGORY-WISE CONTRIBUTION --}}
+        {{-- ========================================================= --}}
+
         <div class="overflow-hidden rounded-[28px] border border-slate-200/70 bg-white shadow-sm">
 
-            {{-- ========================================================= --}}
-            {{-- HEADER --}}
-            {{-- ========================================================= --}}
-
+            {{-- Header --}}
             <div class="relative overflow-hidden border-b border-slate-100 px-6 py-6 sm:px-7">
 
-                {{-- Soft background decoration --}}
                 <div class="pointer-events-none absolute -right-10 -top-10 h-32 w-32
-                    rounded-full bg-violet-100/60 blur-2xl">
-                </div>
+                    rounded-full bg-violet-100/60 blur-2xl"></div>
 
                 <div class="relative flex items-center justify-between gap-4">
 
                     <div class="flex items-center gap-3.5">
 
-                        {{-- Icon --}}
                         <div class="flex h-11 w-11 shrink-0 items-center justify-center
                             rounded-2xl bg-gradient-to-br from-violet-500
-                            to-fuchsia-500 text-white
-                            shadow-lg shadow-violet-200/50">
+                            to-fuchsia-500 text-white shadow-lg
+                            shadow-violet-200/50">
 
                             <i class="fa-solid fa-chart-column text-sm"></i>
 
                         </div>
 
                         <div>
-
                             <h3 class="text-[15px] font-bold tracking-tight text-slate-800">
                                 Category-wise Contribution
                             </h3>
@@ -299,43 +297,31 @@
                             <p class="mt-1 text-xs text-slate-400">
                                 Contribution collected by category
                             </p>
-
                         </div>
 
                     </div>
 
-
-                    {{-- Category count --}}
                     <div class="flex shrink-0 items-center gap-2 rounded-full
-                        border border-violet-100 bg-violet-50/70
-                        px-3 py-1.5">
+                        border border-violet-100 bg-violet-50/70 px-3 py-1.5">
 
                         <span class="h-1.5 w-1.5 rounded-full bg-violet-500"></span>
 
                         <span class="text-[10px] font-bold uppercase
                              tracking-wider text-violet-600">
-
                     {{ $categoryTotals->count() }} Categories
-
                 </span>
 
                     </div>
 
                 </div>
-
             </div>
 
-
-            {{-- ========================================================= --}}
-            {{-- CATEGORY LIST --}}
-            {{-- ========================================================= --}}
-
+            {{-- Category List --}}
             <div class="px-4 py-3 sm:px-5">
 
                 @forelse($categoryTotals as $index => $category)
 
                     @php
-
                         $percentage = $totalAmount > 0
                             ? ($category['total'] / $totalAmount) * 100
                             : 0;
@@ -368,11 +354,9 @@
                         ];
 
                         $color = $colors[$index % count($colors)];
-
                     @endphp
 
-
-                    {{-- Category Item --}}
+                    {{-- Parent Category --}}
                     <div class="group rounded-2xl px-3 py-4 transition-all duration-200
                         hover:bg-slate-50 sm:px-4">
 
@@ -383,12 +367,10 @@
                                 justify-center rounded-xl {{ $color['soft'] }}">
 
                         <span class="h-2.5 w-2.5 rounded-full
-                                     {{ $color['dot'] }}
-                                     ring-4 ring-white">
+                                     {{ $color['dot'] }} ring-4 ring-white">
                         </span>
 
                             </div>
-
 
                             {{-- Category information --}}
                             <div class="min-w-0 flex-1">
@@ -399,28 +381,23 @@
                                         {{ $category['name'] }}
                                     </p>
 
-                                    <span class="shrink-0 rounded-full
-                                         {{ $color['soft'] }}
-                                         px-2 py-1 text-[10px]
-                                         font-bold {{ $color['text'] }}">
-
+                                    <span class="shrink-0 rounded-full {{ $color['soft'] }}
+                                         px-2 py-1 text-[10px] font-bold
+                                         {{ $color['text'] }}">
                                 {{ number_format($percentage, 1) }}%
-
                             </span>
 
                                 </div>
 
-
-                                {{-- Progress --}}
+                                {{-- Parent progress bar --}}
                                 <div class="mt-2.5 flex items-center gap-3">
 
-                                    <div class="h-1.5 flex-1 overflow-hidden rounded-full
-                                        bg-slate-100">
+                                    <div class="h-1.5 flex-1 overflow-hidden
+                                        rounded-full bg-slate-100">
 
-                                        <div
-                                            class="h-full rounded-full {{ $color['bar'] }}
-                                           transition-all duration-700"
-                                            style="width: {{ min($percentage, 100) }}%">
+                                        <div class="h-full rounded-full {{ $color['bar'] }}
+                                            transition-all duration-700"
+                                             style="width: {{ min($percentage, 100) }}%">
                                         </div>
 
                                     </div>
@@ -429,8 +406,7 @@
 
                             </div>
 
-
-                            {{-- Amount --}}
+                            {{-- Parent amount --}}
                             <div class="shrink-0 text-right">
 
                                 <p class="text-sm font-bold tracking-tight text-slate-800">
@@ -440,6 +416,73 @@
                             </div>
 
                         </div>
+
+                        {{-- Subcategories --}}
+                        @if(!empty($category['subcategories']) && count($category['subcategories']) > 0)
+
+                            <div class="ml-5 mt-3 border-l-2 border-slate-100 pl-5 sm:ml-6 sm:pl-6">
+
+                                @foreach($category['subcategories'] as $subcategory)
+
+                                    @php
+                                        $subPercentage = $totalAmount > 0
+                                            ? ($subcategory['total'] / $totalAmount) * 100
+                                            : 0;
+                                    @endphp
+
+                                    <div class="flex items-center gap-3 rounded-lg
+                                        px-2 py-2.5 transition hover:bg-white">
+
+                                        {{-- Subcategory indicator --}}
+                                        <span class="h-1.5 w-1.5 shrink-0 rounded-full
+                                             {{ $color['dot'] }} opacity-60">
+                                </span>
+
+                                        {{-- Subcategory name and percentage --}}
+                                        <div class="min-w-0 flex-1">
+
+                                            <div class="flex items-center justify-between gap-2">
+
+                                                <p class="truncate text-xs font-medium text-slate-500">
+                                                    {{ $subcategory['name'] }}
+                                                </p>
+
+                                                <span class="shrink-0 text-[10px] font-medium
+                                                     text-slate-400">
+                                            {{ number_format($subPercentage, 1) }}%
+                                        </span>
+
+                                            </div>
+
+                                            {{-- Subcategory progress --}}
+                                            <div class="mt-1.5 h-1 overflow-hidden
+                                                rounded-full bg-slate-100">
+
+                                                <div class="h-full rounded-full
+                                                    {{ $color['bar'] }} opacity-60"
+                                                     style="width: {{ min($subPercentage, 100) }}%">
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                        {{-- Subcategory amount --}}
+                                        <div class="shrink-0 text-right">
+
+                                            <p class="text-xs font-semibold text-slate-600">
+                                                ₹{{ number_format($subcategory['total'], 2) }}
+                                            </p>
+
+                                        </div>
+
+                                    </div>
+
+                                @endforeach
+
+                            </div>
+
+                        @endif
 
                     </div>
 
@@ -468,11 +511,7 @@
 
             </div>
 
-
-            {{-- ========================================================= --}}
-            {{-- TOTAL --}}
-            {{-- ========================================================= --}}
-
+            {{-- Total --}}
             <div class="border-t border-slate-100 bg-slate-50/60 px-6 py-5 sm:px-7">
 
                 <div class="flex items-center justify-between gap-4">
@@ -487,7 +526,6 @@
                         </div>
 
                         <div>
-
                             <p class="text-sm font-bold text-slate-800">
                                 Total Contribution
                             </p>
@@ -495,11 +533,9 @@
                             <p class="mt-0.5 text-[10px] text-slate-400">
                                 Across all categories
                             </p>
-
                         </div>
 
                     </div>
-
 
                     <div class="text-right">
 

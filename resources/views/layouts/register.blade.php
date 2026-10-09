@@ -6,8 +6,9 @@
     <meta charset="UTF-8">
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ $title ?? 'ஸ்ரீ வீரபையம்மாள் திருக்கோவில்' }}</title>
+    <title>{{ $title ?? 'ஸ்ரீ வீரபையம்மாள் பொது அறக்கட்டளை' }}</title>
 
 
     {{-- Font Awesome --}}
@@ -83,7 +84,7 @@
                 <h1 class="truncate text-sm font-bold text-slate-900
                            sm:text-base">
 
-                    ஸ்ரீ வீரபையம்மாள் திருக்கோவில்
+                    ஸ்ரீ வீரபையம்மாள் பொது அறக்கட்டளை
 
                 </h1>
 
@@ -167,7 +168,7 @@
                 <div>
 
                     <p class="text-sm font-semibold text-slate-800">
-                        ஸ்ரீ வீரபையம்மாள் திருக்கோவில்
+                        ஸ்ரீ வீரபையம்மாள் பொது அறக்கட்டளை
                     </p>
 
                     <p class="mt-0.5 text-xs text-slate-400">

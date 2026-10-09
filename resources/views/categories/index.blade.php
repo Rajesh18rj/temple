@@ -5,7 +5,6 @@
     <div class="min-h-screen bg-slate-50 p-4 sm:p-6 lg:p-8">
 
         {{-- Page Header --}}
-        {{-- Page Header --}}
         <div class="mb-7 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
 
             {{-- Title --}}
@@ -205,153 +204,120 @@
 
                     @forelse($categories as $category)
 
-                        <tr class="hover:bg-slate-50 transition">
-
-
-                            {{-- Number --}}
-                            <td class="px-5 py-4
-                                       text-sm
-                                       text-slate-500">
-
+                        {{-- Main Category Row --}}
+                        <tr class="bg-white transition hover:bg-violet-50/40">
+                            <td class="px-5 py-4 text-sm text-slate-500">
                                 {{ $loop->iteration }}
-
                             </td>
 
-
-                            {{-- Category Name --}}
                             <td class="px-5 py-4">
-
-                                <p class="text-sm
-                                          font-medium
-                                          text-slate-800">
-
-                                    {{ $category->name }}
-
-                                </p>
-
-                            </td>
-
-
-                            {{-- Amount --}}
-                            <td class="px-5 py-4">
-
-                                @if($category->amount !== null)
-
-                                    <span class="text-sm
-                                                 font-medium
-                                                 text-emerald-600">
-
-                                        ₹{{ number_format($category->amount, 2) }}
-
-                                    </span>
-
-                                @else
-
-                                    <span class="text-sm
-                                                 text-amber-600">
-
-                                        Manual Amount
-
-                                    </span>
-
-                                @endif
-
-                            </td>
-
-
-                            {{-- Display Order --}}
-                            <td class="px-5 py-4
-                                       text-sm
-                                       text-slate-600">
-
-                                {{ $category->display_order }}
-
-                            </td>
-
-
-                            {{-- Actions --}}
-                            <td class="px-5 py-4">
-
-                                <div class="flex items-center
-                                            justify-end gap-2">
-
-
-                                    {{-- Edit --}}
-                                    <a href="{{ route('categories.edit', $category) }}"
-                                       class="inline-flex items-center gap-1.5
-                                              px-3 py-1.5
-                                              rounded-md
-                                              border border-slate-200
-                                              text-slate-600
-                                              text-xs
-                                              font-medium
-                                              hover:bg-slate-100
-                                              hover:text-slate-800
-                                              transition">
-
-                                        <svg class="w-3.5 h-3.5"
-                                             fill="none"
-                                             stroke="currentColor"
-                                             viewBox="0 0 24 24">
-
-                                            <path stroke-linecap="round"
-                                                  stroke-linejoin="round"
-                                                  stroke-width="1.8"
-                                                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
-
+                                <div class="flex items-center gap-2.5">
+                                    <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-violet-50 text-violet-600">
+                                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                                                  d="M3.75 6.75A2.25 2.25 0 016 4.5h4l2 2h6A2.25 2.25 0 0120.25 8.75v8.5A2.25 2.25 0 0118 19.5H6A2.25 2.25 0 013.75 17.25v-10.5z"/>
                                         </svg>
+                                    </span>
+                                    <div>
+                                        <p class="text-sm font-semibold text-slate-800">{{ $category->name }}</p>
+                                        <span class="mt-1 inline-flex rounded-full bg-violet-50 px-2 py-0.5 text-[10px] font-semibold text-violet-600">
+                                            Main Category
+                                        </span>
+                                    </div>
+                                </div>
+                            </td>
 
+                            <td class="px-5 py-4">
+                                @if($category->amount !== null)
+                                    <span class="text-sm font-medium text-emerald-600">₹{{ number_format($category->amount, 2) }}</span>
+                                @else
+                                    <span class="text-sm text-amber-600">Manual Amount</span>
+                                @endif
+                            </td>
+
+                            <td class="px-5 py-4 text-sm text-slate-600">{{ $category->display_order }}</td>
+
+                            <td class="px-5 py-4">
+                                <div class="flex items-center justify-end gap-2">
+                                    <a href="{{ route('categories.edit', $category) }}"
+                                       class="inline-flex items-center gap-1.5 rounded-md border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-800">
+                                        <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                                                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                        </svg>
                                         Edit
-
                                     </a>
 
-
-                                    {{-- Delete --}}
-                                    <form action="{{ route('categories.destroy', $category) }}"
-                                          method="POST"
-                                          class="delete-form"
-                                    >
-
+                                    <form action="{{ route('categories.destroy', $category) }}" method="POST" class="delete-form">
                                         @csrf
-
                                         @method('DELETE')
-
-
-                                        <button type="submit"
-                                                class="inline-flex items-center gap-1.5
-                                                       px-3 py-1.5
-                                                       rounded-md
-                                                       border border-red-200
-                                                       text-red-600
-                                                       text-xs
-                                                       font-medium
-                                                       hover:bg-red-50
-                                                       transition">
-
-                                            <svg class="w-3.5 h-3.5"
-                                                 fill="none"
-                                                 stroke="currentColor"
-                                                 viewBox="0 0 24 24">
-
-                                                <path stroke-linecap="round"
-                                                      stroke-linejoin="round"
-                                                      stroke-width="1.8"
+                                        <button type="submit" class="inline-flex items-center gap-1.5 rounded-md border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 transition hover:bg-red-50">
+                                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
                                                       d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3m-9 0h14"/>
-
                                             </svg>
-
                                             Delete
-
                                         </button>
-
                                     </form>
-
                                 </div>
-
                             </td>
-
                         </tr>
 
+                        {{-- Subcategory Rows --}}
+                        @foreach($category->subcategories as $subcategory)
+                            <tr class="border-t border-slate-100 bg-slate-50/70 transition hover:bg-violet-50/50">
+                                <td class="px-5 py-3.5 text-sm text-slate-400">
+                                    <span class="pl-2">↳</span>
+                                </td>
+
+                                <td class="px-5 py-3.5">
+                                    <div class="flex items-center gap-3 pl-5">
+                                        <span class="h-6 w-px bg-violet-200"></span>
+                                        <div>
+                                            <p class="text-sm font-medium text-slate-700">{{ $subcategory->name }}</p>
+                                            <span class="mt-1 inline-flex rounded-full bg-slate-200/70 px-2 py-0.5 text-[10px] font-medium text-slate-500">
+                                                Subcategory of {{ $category->name }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td class="px-5 py-3.5">
+                                    @if($subcategory->amount !== null)
+                                        <span class="text-sm font-medium text-emerald-600">₹{{ number_format($subcategory->amount, 2) }}</span>
+                                    @else
+                                        <span class="text-sm text-amber-600">Manual Amount</span>
+                                    @endif
+                                </td>
+
+                                <td class="px-5 py-3.5 text-sm text-slate-500">{{ $subcategory->display_order }}</td>
+
+                                <td class="px-5 py-3.5">
+                                    <div class="flex items-center justify-end gap-2">
+                                        <a href="{{ route('categories.edit', $subcategory) }}"
+                                           class="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-800">
+                                            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                                                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                            </svg>
+                                            Edit
+                                        </a>
+
+                                        <form action="{{ route('categories.destroy', $subcategory) }}" method="POST" class="delete-form">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="inline-flex items-center gap-1.5 rounded-md border border-red-200 bg-white px-3 py-1.5 text-xs font-medium text-red-600 transition hover:bg-red-50">
+                                                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                                                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3m-9 0h14"/>
+                                                </svg>
+                                                Delete
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
 
                     @empty
 

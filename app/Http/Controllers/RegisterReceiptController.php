@@ -8,6 +8,7 @@ use App\Models\Receipt;
 use App\Models\ReceiptDetail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class RegisterReceiptController extends Controller
 {
@@ -16,7 +17,14 @@ class RegisterReceiptController extends Controller
      */
     public function create()
     {
-        $categories = Category::orderBy('display_order')
+        $categories = Category::whereNull('parent_id')
+            ->with([
+                'subcategories' => function ($query) {
+                    $query->orderBy('display_order')
+                        ->orderBy('name');
+                },
+            ])
+            ->orderBy('display_order')
             ->orderBy('name')
             ->get();
 
@@ -30,74 +38,73 @@ class RegisterReceiptController extends Controller
         );
     }
 
-
     /**
      * Save registration details
      */
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'mobile' => 'nullable|string|max:20',
+            'mobile' => [
+                'required',
+                'string',
+                'regex:/^[0-9]{10}$/',
+            ],
             'address' => 'nullable|string',
-
             'city_id' => 'required|exists:cities,id',
 
             'categories' => 'required|array|min:1',
-            'categories.*' => 'exists:categories,id',
+            'categories.*' => 'required|integer|distinct|exists:categories,id',
 
             'amounts' => 'nullable|array',
             'amounts.*' => 'nullable|numeric|min:0.01',
         ]);
 
+        $selectedIds = collect($validated['categories'])
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
 
-        /*
-        |--------------------------------------------------------------------------
-        | Validate manual amounts
-        |--------------------------------------------------------------------------
-        */
+        // Load only the selected categories.
+        $selectedCategories = Category::whereIn('id', $selectedIds)
+            ->get()
+            ->keyBy('id');
 
-        foreach ($request->categories as $categoryId) {
+        // A category with subcategories must not be selected as a receipt item.
+        foreach ($selectedCategories as $category) {
+            if ($category->subcategories()->exists()) {
+                throw ValidationException::withMessages([
+                    'categories' => "Please select a subcategory under {$category->name}, not the main category itself.",
+                ]);
+            }
+        }
 
-            $category = Category::findOrFail($categoryId);
-
+        // Validate amounts and ensure fixed amounts cannot be overridden.
+        foreach ($selectedCategories as $category) {
             if ($category->amount === null) {
+                $amount = $request->input("amounts.{$category->id}");
 
-                $amount = $request->input("amounts.$categoryId");
-
-                if ($amount === null || $amount <= 0) {
-
-                    return back()
-                        ->withInput()
-                        ->with(
-                            'error',
-                            "Please enter an amount for {$category->name}."
-                        );
+                if (!is_numeric($amount) || (float) $amount <= 0) {
+                    throw ValidationException::withMessages([
+                        "amounts.{$category->id}" =>
+                            "Please enter a valid amount for {$category->name}.",
+                    ]);
                 }
             }
         }
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | Create receipt and receipt details
-        |--------------------------------------------------------------------------
-        */
-
-        $receipt = DB::transaction(function () use ($request) {
-
+        $receipt = DB::transaction(function () use (
+            $request,
+            $selectedIds,
+            $selectedCategories
+        ) {
             $receipt = Receipt::create([
                 'name' => $request->name,
                 'image' => null,
                 'mobile' => $request->mobile,
                 'address' => $request->address,
-
-                // City
                 'city_id' => $request->city_id,
-
                 'date' => now()->toDateString(),
-
-                // Public registration
                 'receipt_type' => 'registered',
             ]);
 
@@ -107,24 +114,14 @@ class RegisterReceiptController extends Controller
                     . str_pad($receipt->id, 3, '0', STR_PAD_LEFT),
             ]);
 
+            foreach ($selectedIds as $categoryId) {
+                $category = $selectedCategories->get($categoryId);
 
-            foreach ($request->categories as $categoryId) {
-
-                $category = Category::findOrFail($categoryId);
-
-                if ($category->amount !== null) {
-
-                    // Fixed category amount
-                    $amount = $category->amount;
-
-                } else {
-
-                    // User-entered amount
-                    $amount = $request->input(
-                        "amounts.$categoryId"
-                    );
-                }
-
+                // Use the fixed category amount when configured.
+                // Otherwise, use the amount entered by the user.
+                $amount = $category->amount !== null
+                    ? $category->amount
+                    : $request->input("amounts.{$category->id}");
 
                 ReceiptDetail::create([
                     'receipt_id' => $receipt->id,
@@ -133,32 +130,20 @@ class RegisterReceiptController extends Controller
                 ]);
             }
 
-
             return $receipt;
         });
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | Go to payment page
-        |--------------------------------------------------------------------------
-        */
-
         return redirect()
             ->route('register-receipts.payment', $receipt)
-            ->with(
-                'success',
-                'Registration details saved successfully.'
-            );
+            ->with('success', 'Registration details saved successfully.');
     }
-
 
     /**
      * Show payment page
      */
     public function payment(Receipt $receipt)
     {
-        $receipt->load('receiptDetails.category');
+        $receipt->load('receiptDetails.category.parent');
 
         return view(
             'register-receipts.payment',
@@ -166,9 +151,8 @@ class RegisterReceiptController extends Controller
         );
     }
 
-
     /**
-     * Upload payment proof - OPTIONAL
+     * Upload payment proof - optional
      */
     public function paymentStore(Request $request, Receipt $receipt)
     {
@@ -176,69 +160,77 @@ class RegisterReceiptController extends Controller
             'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | Store payment proof only if uploaded
-        |--------------------------------------------------------------------------
-        */
-
         if ($request->hasFile('image')) {
-
             $file = $request->file('image');
 
             $uploadPath = public_path('uploads/receipts');
 
-            // Create directory if it doesn't exist
             if (!is_dir($uploadPath)) {
                 mkdir($uploadPath, 0755, true);
             }
 
-            // Generate unique filename
             $filename = time()
                 . '_'
                 . uniqid()
                 . '.'
                 . $file->getClientOriginalExtension();
 
-            // Move file directly to public folder
-            $file->move(
-                $uploadPath,
-                $filename
-            );
+            $file->move($uploadPath, $filename);
 
-            // Update receipt with payment proof
             $receipt->update([
                 'image' => 'uploads/receipts/' . $filename,
             ]);
         }
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | Go to success page
-        |--------------------------------------------------------------------------
-        */
-
         return redirect()
             ->route('register-receipts.success', $receipt)
-            ->with(
-                'success',
-                'Payment details submitted successfully.'
-            );
+            ->with('success', 'Payment details submitted successfully.');
     }
-
 
     /**
      * Show success page
      */
     public function success(Receipt $receipt)
     {
-        $receipt->load('receiptDetails.category');
+        $receipt->load('receiptDetails.category.parent');
 
         return view(
             'register-receipts.success',
             compact('receipt')
         );
     }
+
+
+    public function storeCity(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:100',
+        ]);
+
+        // Prevent duplicate city names (case-insensitive).
+        $exists = City::whereRaw(
+            'LOWER(name) = ?',
+            [mb_strtolower(trim($validated['name']))]
+        )->exists();
+
+        if ($exists) {
+            return response()->json([
+                'message' => 'This city already exists.',
+            ], 422);
+        }
+
+        $city = new City();
+        $city->name = trim($validated['name']);
+        $city->status = true;
+        $city->save();
+
+        return response()->json([
+            'message' => 'City added successfully.',
+            'city' => [
+                'id' => $city->id,
+                'name' => $city->name,
+            ],
+        ], 201);
+    }
+
 }

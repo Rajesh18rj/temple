@@ -151,9 +151,10 @@ class ReceiptController extends Controller
             ->with('success', 'Receipt created successfully.');
     }
 
+
     public function downloadPdf(Receipt $receipt)
     {
-        $receipt->load('receiptDetails.category');
+        $receipt->load('receiptDetails.category.parent');
 
         if (!extension_loaded('gd') || !function_exists('imagettftext')) {
             abort(
@@ -171,20 +172,13 @@ class ReceiptController extends Controller
         );
 
         if (!is_file($font) || !is_file($bold)) {
-            abort(
-                500,
-                'DomPDF DejaVu font files were not found.'
-            );
+            abort(500, 'DomPDF DejaVu font files were not found.');
         }
 
         /*
         |--------------------------------------------------------------------------
-        | IMAGE SIZE
+        | IMAGE SIZE - HALF A4
         |--------------------------------------------------------------------------
-        | Half A4 ratio
-        |
-        | 210mm × 148.5mm
-        |
         */
 
         $w = 1600;
@@ -200,68 +194,16 @@ class ReceiptController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $white = imagecolorallocate(
-            $im,
-            255,
-            255,
-            255
-        );
+        $white = imagecolorallocate($im, 255, 255, 255);
+        $ink = imagecolorallocate($im, 24, 33, 61);
+        $muted = imagecolorallocate($im, 100, 116, 139);
+        $softMuted = imagecolorallocate($im, 148, 163, 184);
+        $line = imagecolorallocate($im, 219, 226, 234);
+        $purple = imagecolorallocate($im, 109, 40, 217);
+        $lightPurple = imagecolorallocate($im, 247, 245, 255);
+        $totalPurple = imagecolorallocate($im, 245, 243, 255);
 
-        $ink = imagecolorallocate(
-            $im,
-            24,
-            33,
-            61
-        );
-
-        $muted = imagecolorallocate(
-            $im,
-            100,
-            116,
-            139
-        );
-
-        $softMuted = imagecolorallocate(
-            $im,
-            148,
-            163,
-            184
-        );
-
-        $line = imagecolorallocate(
-            $im,
-            219,
-            226,
-            234
-        );
-
-        $purple = imagecolorallocate(
-            $im,
-            109,
-            40,
-            217
-        );
-
-        $lightPurple = imagecolorallocate(
-            $im,
-            247,
-            245,
-            255
-        );
-
-        $totalPurple = imagecolorallocate(
-            $im,
-            245,
-            243,
-            255
-        );
-
-        imagefill(
-            $im,
-            0,
-            0,
-            $white
-        );
+        imagefill($im, 0, 0, $white);
 
         /*
         |--------------------------------------------------------------------------
@@ -271,17 +213,12 @@ class ReceiptController extends Controller
 
         $text = function (
             string $value,
-            int    $x,
-            int    $baseline,
-            int    $size = 19,
-            bool   $isBold = false,
-            ?int   $color = null
-        ) use (
-            $im,
-            $font,
-            $bold,
-            $ink
-        ): void {
+            int $x,
+            int $baseline,
+            int $size = 19,
+            bool $isBold = false,
+            ?int $color = null
+        ) use ($im, $font, $bold, $ink): void {
 
             imagettftext(
                 $im,
@@ -297,27 +234,20 @@ class ReceiptController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | RIGHT ALIGNED TEXT
+        | RIGHT-ALIGNED TEXT
         |--------------------------------------------------------------------------
         */
 
         $rightText = function (
             string $value,
-            int    $rightX,
-            int    $baseline,
-            int    $size = 19,
-            bool   $isBold = false,
-            ?int   $color = null
-        ) use (
-            $im,
-            $font,
-            $bold,
-            $ink
-        ): void {
+            int $rightX,
+            int $baseline,
+            int $size = 19,
+            bool $isBold = false,
+            ?int $color = null
+        ) use ($im, $font, $bold, $ink): void {
 
-            $file = $isBold
-                ? $bold
-                : $font;
+            $file = $isBold ? $bold : $font;
 
             $box = imagettfbbox(
                 $size,
@@ -348,32 +278,20 @@ class ReceiptController extends Controller
 
         $wrap = function (
             string $value,
-            int    $maxWidth,
-            int    $size = 18,
-            bool   $isBold = false
-        ) use (
-            $font,
-            $bold
-        ): array {
+            int $maxWidth,
+            int $size = 18,
+            bool $isBold = false
+        ) use ($font, $bold): array {
 
-            $file = $isBold
-                ? $bold
-                : $font;
+            $file = $isBold ? $bold : $font;
 
-            $words = preg_split(
-                '/\s+/u',
-                trim($value)
-            ) ?: [];
-
+            $words = preg_split('/\s+/u', trim($value)) ?: [];
             $lines = [''];
 
             foreach ($words as $word) {
-
                 $index = count($lines) - 1;
 
-                $candidate = trim(
-                    $lines[$index] . ' ' . $word
-                );
+                $candidate = trim($lines[$index] . ' ' . $word);
 
                 $box = imagettfbbox(
                     $size,
@@ -384,15 +302,9 @@ class ReceiptController extends Controller
 
                 $width = $box[2] - $box[0];
 
-                if (
-                    $width > $maxWidth &&
-                    $lines[$index] !== ''
-                ) {
-
+                if ($width > $maxWidth && $lines[$index] !== '') {
                     $lines[] = $word;
-
                 } else {
-
                     $lines[$index] = $candidate;
                 }
             }
@@ -407,9 +319,7 @@ class ReceiptController extends Controller
         */
 
         $left = 65;
-
         $rightEdge = $w - 65;
-
         $contentWidth = $rightEdge - $left;
 
         /*
@@ -427,7 +337,6 @@ class ReceiptController extends Controller
             $purple
         );
 
-
         $rightText(
             'Receipt No: ' . $receipt->receipt_number,
             $rightEdge,
@@ -438,8 +347,7 @@ class ReceiptController extends Controller
         );
 
         $rightText(
-            'Date: ' .
-            (
+            'Date: ' . (
             $receipt->date
                 ? $receipt->date->format('d M Y')
                 : '-'
@@ -482,7 +390,6 @@ class ReceiptController extends Controller
         );
 
         $donorTop = 205;
-
         $donorBottom = 296;
 
         imagerectangle(
@@ -494,19 +401,8 @@ class ReceiptController extends Controller
             $line
         );
 
-        /*
-        | 30% Name
-        | 25% Mobile
-        | 45% Address
-        */
-
-        $nameEnd =
-            $left +
-            (int)($contentWidth * 0.30);
-
-        $mobileEnd =
-            $nameEnd +
-            (int)($contentWidth * 0.25);
+        $nameEnd = $left + (int) ($contentWidth * 0.30);
+        $mobileEnd = $nameEnd + (int) ($contentWidth * 0.25);
 
         imageline(
             $im,
@@ -526,53 +422,18 @@ class ReceiptController extends Controller
             $line
         );
 
-        /*
-        | Labels
-        */
-
-        $text(
-            'NAME',
-            $left + 17,
-            233,
-            12,
-            true,
-            $softMuted
-        );
-
-        $text(
-            'MOBILE',
-            $nameEnd + 17,
-            233,
-            12,
-            true,
-            $softMuted
-        );
-
-        $text(
-            'ADDRESS',
-            $mobileEnd + 17,
-            233,
-            12,
-            true,
-            $softMuted
-        );
-
-        /*
-        | Name
-        */
+        $text('NAME', $left + 17, 233, 12, true, $softMuted);
+        $text('MOBILE', $nameEnd + 17, 233, 12, true, $softMuted);
+        $text('ADDRESS', $mobileEnd + 17, 233, 12, true, $softMuted);
 
         $nameLines = $wrap(
-            (string)$receipt->name,
+            (string) $receipt->name,
             $nameEnd - $left - 34,
             18,
             true
         );
 
-        foreach (
-            array_slice($nameLines, 0, 2)
-            as $i => $lineText
-        ) {
-
+        foreach (array_slice($nameLines, 0, 2) as $i => $lineText) {
             $text(
                 $lineText,
                 $left + 17,
@@ -583,14 +444,8 @@ class ReceiptController extends Controller
             );
         }
 
-        /*
-        | Mobile
-        */
-
         $text(
-            (string)(
-            $receipt->mobile ?: '-'
-            ),
+            (string) ($receipt->mobile ?: '-'),
             $nameEnd + 17,
             264,
             18,
@@ -598,24 +453,14 @@ class ReceiptController extends Controller
             $ink
         );
 
-        /*
-        | Address
-        */
-
         $addressLines = $wrap(
-            (string)(
-            $receipt->address ?: '-'
-            ),
+            (string) ($receipt->address ?: '-'),
             $rightEdge - $mobileEnd - 34,
             17,
             true
         );
 
-        foreach (
-            array_slice($addressLines, 0, 2)
-            as $i => $lineText
-        ) {
-
+        foreach (array_slice($addressLines, 0, 2) as $i => $lineText) {
             $text(
                 $lineText,
                 $mobileEnd + 17,
@@ -642,14 +487,8 @@ class ReceiptController extends Controller
         );
 
         $tableTop = 354;
-
         $headerBottom = 405;
-
-        $rowHeight = 48;
-
-        /*
-        | Header background
-        */
+        $rowHeight = 60;
 
         imagefilledrectangle(
             $im,
@@ -660,10 +499,6 @@ class ReceiptController extends Controller
             $lightPurple
         );
 
-        /*
-        | Table border
-        */
-
         imagerectangle(
             $im,
             $left,
@@ -673,34 +508,10 @@ class ReceiptController extends Controller
             $line
         );
 
-        /*
-        | Amount column starts here
-        */
+        $amountStart = $rightEdge - 370;
 
-        $amountStart =
-            $rightEdge - 370;
-
-        /*
-        | Table headers
-        */
-
-        $text(
-            '#',
-            $left + 20,
-            388,
-            14,
-            true,
-            $muted
-        );
-
-        $text(
-            'CATEGORY',
-            $left + 145,
-            388,
-            14,
-            true,
-            $muted
-        );
+        $text('#', $left + 20, 388, 14, true, $muted);
+        $text('CATEGORY', $left + 145, 388, 14, true, $muted);
 
         $rightText(
             'AMOUNT',
@@ -717,15 +528,9 @@ class ReceiptController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $details =
-            $receipt->receiptDetails;
-
-        /*
-        | Keep the half-page compact.
-        */
+        $details = $receipt->receiptDetails;
 
         if ($details->count() > 8) {
-
             imagedestroy($im);
 
             abort(
@@ -734,24 +539,13 @@ class ReceiptController extends Controller
             );
         }
 
-        $rowY =
-            $headerBottom;
-
+        $rowY = $headerBottom;
         $total = 0;
 
-        foreach (
-            $details as $index => $detail
-        ) {
+        foreach ($details as $index => $detail) {
+            $total += (float) $detail->amount;
 
-            $total +=
-                (float)$detail->amount;
-
-            $nextY =
-                $rowY + $rowHeight;
-
-            /*
-            | Row separator
-            */
+            $nextY = $rowY + $rowHeight;
 
             imageline(
                 $im,
@@ -762,33 +556,75 @@ class ReceiptController extends Controller
                 $line
             );
 
-            /*
-            | Number
-            */
-
+            // Item number
             $text(
-                (string)($index + 1),
+                (string) ($index + 1),
                 $left + 20,
-                $rowY + 31,
+                $rowY + 37,
                 17,
                 false,
                 $ink
             );
 
-            /*
-            | Category
-            */
+            // Category and parent category
+            $categoryModel = $detail->category;
+            $category = (string) ($categoryModel?->name ?? 'Category');
+            $parentCategory = $categoryModel?->parent;
 
-            $category =
-                (string)(
-                    $detail->category->name
-                    ?? 'Category'
+            if ($parentCategory) {
+                // Parent category label
+                $parentName = (string) $parentCategory->name;
+
+                $parentSize = 12;
+                $parentMaxWidth = $amountStart - $left - 180;
+
+                while ($parentSize > 9) {
+                    $box = imagettfbbox(
+                        $parentSize,
+                        0,
+                        $font,
+                        $parentName
+                    );
+
+                    if (($box[2] - $box[0]) <= $parentMaxWidth) {
+                        break;
+                    }
+
+                    $parentSize--;
+                }
+
+                $text(
+                    $parentName,
+                    $left + 145,
+                    $rowY + 22,
+                    $parentSize,
+                    false,
+                    $muted
                 );
 
-            $categorySize = 17;
+                // Subcategory arrow
+                $text(
+                    '>',
+                    $left + 145,
+                    $rowY + 44,
+                    14,
+                    true,
+                    $purple
+                );
 
-            while ($categorySize > 11) {
+                $categoryX = $left + 165;
+                $categoryBaseline = $rowY + 44;
+                $categorySize = 15;
+            } else {
+                // Standalone category
+                $categoryX = $left + 145;
+                $categoryBaseline = $rowY + 37;
+                $categorySize = 17;
+            }
 
+            $categoryMaxWidth = $amountStart - $categoryX - 25;
+
+            while ($categorySize > 10) {
                 $box = imagettfbbox(
                     $categorySize,
                     0,
@@ -796,10 +632,7 @@ class ReceiptController extends Controller
                     $category
                 );
 
-                if (
-                    ($box[2] - $box[0])
-                    <= ($amountStart - $left - 180)
-                ) {
+                if (($box[2] - $box[0]) <= $categoryMaxWidth) {
                     break;
                 }
 
@@ -808,32 +641,24 @@ class ReceiptController extends Controller
 
             $text(
                 $category,
-                $left + 145,
-                $rowY + 31,
+                $categoryX,
+                $categoryBaseline,
                 $categorySize,
                 false,
                 $ink
             );
 
-            /*
-            | Amount
-            */
-
+            // Amount
             $rightText(
-                '₹' .
-                number_format(
-                    (float)$detail->amount,
-                    2
-                ),
+                '₹' . number_format((float) $detail->amount, 2),
                 $rightEdge - 18,
-                $rowY + 31,
+                $rowY + 37,
                 17,
                 true,
                 $ink
             );
 
-            $rowY =
-                $nextY;
+            $rowY = $nextY;
         }
 
         /*
@@ -872,11 +697,7 @@ class ReceiptController extends Controller
         );
 
         $rightText(
-            '₹' .
-            number_format(
-                $total,
-                2
-            ),
+            '₹' . number_format($total, 2),
             $rightEdge - 18,
             $rowY + 36,
             23,
@@ -892,10 +713,6 @@ class ReceiptController extends Controller
 
         $signatureY = 1010;
 
-        /*
-        | Donor line
-        */
-
         imageline(
             $im,
             130,
@@ -904,10 +721,6 @@ class ReceiptController extends Controller
             $signatureY,
             $muted
         );
-
-        /*
-        | Authorized line
-        */
 
         imageline(
             $im,
@@ -953,26 +766,19 @@ class ReceiptController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | IMAGE → PNG
+        | IMAGE TO PNG
         |--------------------------------------------------------------------------
         */
 
         ob_start();
 
-        imagepng(
-            $im,
-            null,
-            6
-        );
+        imagepng($im, null, 6);
 
-        $png =
-            ob_get_clean();
+        $png = ob_get_clean();
 
         imagedestroy($im);
 
-        $image =
-            'data:image/png;base64,' .
-            base64_encode($png);
+        $image = 'data:image/png;base64,' . base64_encode($png);
 
         /*
         |--------------------------------------------------------------------------
@@ -995,11 +801,19 @@ class ReceiptController extends Controller
         );
     }
 
+
     public function edit(Receipt $receipt)
     {
         $receipt->load('receiptDetails.category');
 
-        $categories = Category::orderBy('display_order')
+        $categories = Category::with([
+            'subcategories' => function ($query) {
+                $query->orderBy('display_order')
+                    ->orderBy('name');
+            }
+        ])
+            ->whereNull('parent_id')
+            ->orderBy('display_order')
             ->orderBy('name')
             ->get();
 
@@ -1013,6 +827,7 @@ class ReceiptController extends Controller
             'cities'
         ));
     }
+
 
     public function update(Request $request, Receipt $receipt)
     {

@@ -13,6 +13,11 @@ return new class extends Migration
     {
         Schema::create('categories', function (Blueprint $table) {
             $table->id();
+            // Parent category ID (null for main categories)
+            $table->foreignId('parent_id')
+                ->nullable()
+                ->constrained('categories')
+                ->nullOnDelete();
             $table->string('name');
             $table->decimal('amount', 10, 2)->nullable();
             $table->unsignedInteger('display_order')->default(0);

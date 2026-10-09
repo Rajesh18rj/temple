@@ -402,8 +402,15 @@
                                                  font-medium
                                                  text-slate-800">
 
-                                        {{ $detail->category->name }}
+<div class="text-sm font-medium text-slate-800">
+    {{ $detail->category?->name ?? 'Unknown Category' }}
+</div>
 
+@if($detail->category?->parent)
+                                            <p class="mt-1 text-xs text-slate-400">
+        {{ $detail->category->parent->name }}
+    </p>
+                                        @endif
                                     </span>
 
                                 </td>
