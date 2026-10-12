@@ -59,7 +59,7 @@
                                 'shadow' => 'shadow-rose-200/60',
                                 'badge' => 'ஸ்ரீ வீரபையம்மாள்  துணை',
                                 'badgeClass' => 'border-rose-100 bg-rose-50 text-rose-600',
-                                'subtitle' => 'ஸ்ரீ வீரபையம்மாள் திருக்கோவில்',
+                                'subtitle' => 'SRI VEERABAIYAMMAL PUBLIC TRUST',
                             ],
                         };
                     @endphp

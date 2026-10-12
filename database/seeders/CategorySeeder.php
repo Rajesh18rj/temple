@@ -21,7 +21,7 @@ class CategorySeeder extends Seeder
                 'display_order' => 2,
             ],
             [
-                'name' => 'சம்பந்தக்காரர்கள் நன்கொடை (SAMBANTHAKAARAR DONATION)',
+                'name' => 'பூஜை (Pooja)',
                 'amount' => null,
                 'display_order' => 3,
             ],

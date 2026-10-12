@@ -163,12 +163,12 @@ class ReceiptController extends Controller
             );
         }
 
-        $font = base_path(
-            'vendor/dompdf/dompdf/lib/fonts/DejaVuSans.ttf'
+        $font = resource_path(
+            'fonts/NotoSansTamil-Regular.ttf'
         );
 
-        $bold = base_path(
-            'vendor/dompdf/dompdf/lib/fonts/DejaVuSans-Bold.ttf'
+        $bold = resource_path(
+            'fonts/NotoSansTamil-Bold.ttf'
         );
 
         if (!is_file($font) || !is_file($bold)) {

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CityController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ReceiptController;
 use App\Http\Controllers\ReceiptDetailController;
@@ -78,6 +79,8 @@ Route::middleware('auth')->group(function () {
         '/receipts/export',
         [ReceiptController::class, 'downloadExcel']
     )->name('receipts.export');
+
+    Route::resource('cities', CityController::class)->except('show');
 
 
 });
