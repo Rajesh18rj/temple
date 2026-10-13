@@ -758,6 +758,23 @@
 
     </div>
 
+    <style>
+
+        /* Remove number input arrows in Chrome, Edge and Safari */
+        .amount-input::-webkit-inner-spin-button,
+        .amount-input::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        /* Remove number input arrows in Firefox */
+        .amount-input {
+            -moz-appearance: textfield;
+            appearance: textfield;
+        }
+
+    </style>
+
 
     {{-- =========================================================
          JAVASCRIPT

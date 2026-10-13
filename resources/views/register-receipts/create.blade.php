@@ -315,22 +315,28 @@
 
                                                     @else
 
-                                                        <div class="flex h-11 items-center rounded-lg border border-slate-200 bg-white px-3 transition focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-100">
+                                                        <div id="amount_wrapper_{{ $item->id }}" class="amount-wrapper flex h-11 items-center rounded-lg border border-slate-200 bg-white px-3 transition focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-100">
                                                             <span class="mr-2 text-sm font-medium text-slate-400">₹</span>
 
                                                             <input
-                                                                type="number"
+                                                                type="text"
+                                                                inputmode="decimal"
                                                                 name="amounts[{{ $item->id }}]"
                                                                 id="amount_{{ $item->id }}"
-                                                                step="0.01"
-                                                                min="0.01"
                                                                 placeholder="0.00"
                                                                 value="{{ old('amounts.' . $item->id) }}"
                                                                 {{ $isSelected ? '' : 'disabled' }}
+                                                                oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\\..*)\\./g, '$1')"
                                                                 class="amount-input w-full border-0 bg-transparent p-0 text-sm font-semibold text-slate-800 placeholder:text-slate-300 focus:ring-0 disabled:cursor-not-allowed"
                                                             >
                                                         </div>
 
+                                                        <p
+                                                            id="amount_error_{{ $item->id }}"
+                                                            class="mt-1 hidden text-xs font-medium text-red-600"
+                                                        >
+                                                            Please enter the donation amount.
+                                                        </p>
                                                     @endif
                                                 </div>
 
@@ -461,9 +467,26 @@
         </div>
     </div>
 
-    {{-- TOTAL CALCULATION AND INTERACTIONS --}}
+    <style>
+
+        /* Hide number input spinner arrows in Chrome, Edge, Safari */
+        .amount-input::-webkit-inner-spin-button,
+        .amount-input::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        /* Hide number input spinner arrows in Firefox */
+        .amount-input {
+            -moz-appearance: textfield;
+            appearance: textfield;
+        }
+
+    </style>
+    {{-- TOTAL CALCULATION AND DONATION AMOUNT VALIDATION --}}
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            const form = document.getElementById('registerReceiptForm');
             const checkboxes = document.querySelectorAll('.category-checkbox');
             const totalElement = document.getElementById('totalAmount');
 
@@ -494,6 +517,67 @@
                 }
             }
 
+            function validateAmount(checkbox) {
+                const id = checkbox.dataset.categoryId;
+                const fixedAmount = checkbox.dataset.fixedAmount;
+                const amountInput = document.getElementById('amount_' + id);
+                const error = document.getElementById('amount_error_' + id);
+                const wrapper = document.getElementById('amount_wrapper_' + id);
+
+                // Fixed amount categories do not need manual amount validation.
+                if (fixedAmount !== '' || !amountInput || !error) {
+                    return true;
+                }
+
+                const value = amountInput.value.trim();
+                const amount = Number(value);
+                const invalid = checkbox.checked &&
+                    (value === '' || !Number.isFinite(amount) || amount <= 0);
+
+                error.classList.toggle('hidden', !invalid);
+                amountInput.setAttribute('aria-invalid', invalid ? 'true' : 'false');
+
+                if (wrapper) {
+                    wrapper.classList.toggle('border-red-500', invalid);
+                    wrapper.classList.toggle('focus-within:border-red-500', invalid);
+                    wrapper.classList.toggle('focus-within:ring-red-100', invalid);
+                    wrapper.classList.toggle('border-slate-200', !invalid);
+                    wrapper.classList.toggle('focus-within:border-emerald-500', !invalid);
+                    wrapper.classList.toggle('focus-within:ring-emerald-100', !invalid);
+                }
+
+                return !invalid;
+            }
+
+            function validateAllAmounts() {
+                let valid = true;
+                let firstInvalidInput = null;
+
+                checkboxes.forEach(function (checkbox) {
+                    const isValid = validateAmount(checkbox);
+
+                    if (!isValid) {
+                        valid = false;
+
+                        if (!firstInvalidInput) {
+                            firstInvalidInput = document.getElementById(
+                                'amount_' + checkbox.dataset.categoryId
+                            );
+                        }
+                    }
+                });
+
+                if (!valid && firstInvalidInput) {
+                    firstInvalidInput.focus();
+                    firstInvalidInput.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center'
+                    });
+                }
+
+                return valid;
+            }
+
             checkboxes.forEach(function (checkbox) {
                 const id = checkbox.dataset.categoryId;
                 const amountInput = document.getElementById('amount_' + id);
@@ -517,12 +601,46 @@
                         option.classList.toggle('bg-white', !this.checked);
                     }
 
+                    // Show the error immediately when a variable-amount
+                    // category is selected without an amount.
+                    validateAmount(this);
                     updateTotal();
                 });
             });
 
             document.querySelectorAll('.amount-input').forEach(function (input) {
-                input.addEventListener('input', updateTotal);
+                input.addEventListener('input', function () {
+                    const id = this.id.replace('amount_', '');
+                    const checkbox = document.getElementById('category_' + id);
+
+                    if (checkbox) {
+                        validateAmount(checkbox);
+                    }
+
+                    updateTotal();
+                });
+
+                input.addEventListener('blur', function () {
+                    const id = this.id.replace('amount_', '');
+                    const checkbox = document.getElementById('category_' + id);
+
+                    if (checkbox) {
+                        validateAmount(checkbox);
+                    }
+                });
+            });
+
+            form.addEventListener('submit', function (event) {
+                if (!validateAllAmounts()) {
+                    event.preventDefault();
+                }
+            });
+
+            // Restore validation state after Laravel redirects back with old input.
+            checkboxes.forEach(function (checkbox) {
+                if (checkbox.checked) {
+                    validateAmount(checkbox);
+                }
             });
 
             updateTotal();

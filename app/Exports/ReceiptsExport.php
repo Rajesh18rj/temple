@@ -11,7 +11,6 @@ use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithCustomStartCell;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Events\AfterSheet;
-use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 
@@ -30,7 +29,14 @@ class ReceiptsExport implements
     {
         $this->query = $query;
 
-        $this->categories = Category::orderBy('display_order')
+        $this->categories = Category::with('parent')
+            ->where(function ($query) {
+                $query->whereNotNull('parent_id')
+                    ->orWhereDoesntHave('children');
+            })
+            ->orderByRaw('COALESCE(parent_id, id) ASC')
+            ->orderByRaw('CASE WHEN parent_id IS NULL THEN 0 ELSE 1 END ASC')
+            ->orderBy('display_order')
             ->orderBy('name')
             ->get();
     }
@@ -42,7 +48,7 @@ class ReceiptsExport implements
         return $query
             ->with([
                 'city',
-                'receiptDetails.category',
+                'receiptDetails.category.parent',
             ])
             ->latest();
     }
@@ -57,14 +63,20 @@ class ReceiptsExport implements
         $headings = [
             'Receipt No',
             'Name',
-            'Mobile',
-            'City',
-            'Address',
             'Date',
+            'Mobile',
+            'Address',
+            'City',
         ];
 
         foreach ($this->categories as $category) {
-            $headings[] = $category->name;
+            $parentName = $category->parent?->name;
+
+            if ($parentName) {
+                $headings[] = $parentName . ' - ' . $category->name;
+            } else {
+                $headings[] = $category->name;
+            }
         }
 
         $headings[] = 'Total Amount';
@@ -77,18 +89,17 @@ class ReceiptsExport implements
         $row = [
             $receipt->receipt_number,
             $receipt->name,
-            $receipt->mobile ?? '-',
-            $receipt->city?->name ?? '-',
-            $receipt->address ?? '-',
             $receipt->date
                 ? $receipt->date->format('d-m-Y')
                 : '-',
+            $receipt->mobile ?? '-',
+            $receipt->address ?? '-',
+            $receipt->city?->name ?? '-',
         ];
 
         $total = 0;
 
         foreach ($this->categories as $category) {
-
             $detail = $receipt->receiptDetails
                 ->firstWhere('category_id', $category->id);
 
@@ -97,7 +108,6 @@ class ReceiptsExport implements
                 : 0;
 
             $row[] = $amount;
-
             $total += $amount;
         }
 
@@ -110,56 +120,28 @@ class ReceiptsExport implements
     {
         return [
             AfterSheet::class => function (AfterSheet $event) {
-
                 $sheet = $event->sheet->getDelegate();
 
-                /*
-                |--------------------------------------------------------------------------
-                | Last receipt row
-                |--------------------------------------------------------------------------
-                */
-
+                // Last data row and totals row.
                 $lastReceiptRow = $sheet->getHighestRow();
-
-                /*
-                |--------------------------------------------------------------------------
-                | Total row
-                |--------------------------------------------------------------------------
-                */
-
                 $totalRow = $lastReceiptRow + 1;
 
-                $sheet->setCellValue(
-                    "F{$totalRow}",
-                    'Total'
-                );
+                $sheet->setCellValue("F{$totalRow}", 'Total');
 
-                /*
-                |--------------------------------------------------------------------------
-                | Calculate totals directly from database
-                |--------------------------------------------------------------------------
-                */
-
+                // Use the same receipt query and filters as the export.
                 $query = $this->query ?? Receipt::query();
 
-                $receipts = $query
+                $receipts = (clone $query)
                     ->with('receiptDetails')
                     ->get();
 
-                /*
-                |--------------------------------------------------------------------------
-                | Category totals
-                |--------------------------------------------------------------------------
-                */
-
-                $categoryStartColumn = 7; // G
+                // Category columns start at G.
+                $categoryStartColumn = 7;
 
                 foreach ($this->categories as $index => $category) {
-
-                    $total = 0;
+                    $categoryTotal = 0;
 
                     foreach ($receipts as $receipt) {
-
                         $detail = $receipt->receiptDetails
                             ->firstWhere(
                                 'category_id',
@@ -167,7 +149,7 @@ class ReceiptsExport implements
                             );
 
                         if ($detail) {
-                            $total += (float) $detail->amount;
+                            $categoryTotal += (float) $detail->amount;
                         }
                     }
 
@@ -177,24 +159,18 @@ class ReceiptsExport implements
 
                     $sheet->setCellValue(
                         "{$column}{$totalRow}",
-                        $total
+                        $categoryTotal
                     );
                 }
 
-                /*
-                |--------------------------------------------------------------------------
-                | Grand Total
-                |--------------------------------------------------------------------------
-                */
-
+                // Grand total across all receipt details.
                 $grandTotal = 0;
 
                 foreach ($receipts as $receipt) {
-
                     $grandTotal += $receipt->receiptDetails
-                        ->sum(function ($detail) {
-                            return (float) $detail->amount;
-                        });
+                        ->sum(
+                            fn ($detail) => (float) $detail->amount
+                        );
                 }
 
                 $totalColumn = $this->columnLetter(
@@ -206,12 +182,7 @@ class ReceiptsExport implements
                     $grandTotal
                 );
 
-                /*
-                |--------------------------------------------------------------------------
-                | Style total row
-                |--------------------------------------------------------------------------
-                */
-
+                // Style the totals row.
                 $highestColumn = $sheet->getHighestColumn();
 
                 $sheet->getStyle(
@@ -221,21 +192,29 @@ class ReceiptsExport implements
                         'bold' => true,
                     ],
                     'fill' => [
-                        'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                        'fillType' => Fill::FILL_SOLID,
                         'startColor' => [
                             'rgb' => 'EDE9FE',
                         ],
                     ],
                     'borders' => [
                         'top' => [
-                            'borderStyle' =>
-                                \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                            'borderStyle' => Border::BORDER_THIN,
                         ],
                     ],
                 ]);
+
+                // Bold the column headings.
+                $sheet->getStyle(
+                    'A1:' . $highestColumn . '1'
+                )->getFont()->setBold(true);
+
+                // Freeze the heading row.
+                $sheet->freezePane('A2');
             },
         ];
     }
+
     private function columnLetter(int $columnNumber): string
     {
         $letter = '';

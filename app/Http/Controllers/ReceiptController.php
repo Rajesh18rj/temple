@@ -153,6 +153,7 @@ class ReceiptController extends Controller
 
 
 
+
 public function downloadPdf(Receipt $receipt)
 {
     $receipt->load([
@@ -378,6 +379,19 @@ public function downloadPdf(Receipt $receipt)
         ),
         $rightEdge,
         108,
+        17,
+        false,
+        $muted
+    );
+
+    $rightText(
+        'Time: ' . (
+            $receipt->created_at
+                ? $receipt->created_at->format('h:i A')
+                : '-'
+        ),
+        $rightEdge,
+        133,
         17,
         false,
         $muted
@@ -766,50 +780,6 @@ public function downloadPdf(Receipt $receipt)
 
     /*
     |--------------------------------------------------------------------------
-    | SIGNATURES
-    |--------------------------------------------------------------------------
-    */
-
-    $signatureY = 1010;
-
-    imageline(
-        $im,
-        130,
-        $signatureY,
-        570,
-        $signatureY,
-        $muted
-    );
-
-    imageline(
-        $im,
-        1030,
-        $signatureY,
-        1470,
-        $signatureY,
-        $muted
-    );
-
-    $text(
-        'Donor Signature',
-        274,
-        $signatureY + 32,
-        15,
-        true,
-        $muted
-    );
-
-    $text(
-        'Authorized Signature',
-        1100,
-        $signatureY + 32,
-        15,
-        true,
-        $muted
-    );
-
-    /*
-    |--------------------------------------------------------------------------
     | FOOTER
     |--------------------------------------------------------------------------
     */
@@ -859,6 +829,7 @@ public function downloadPdf(Receipt $receipt)
         'receipt-' . $receipt->receipt_number . '.pdf'
     );
 }
+
 
 
     public function edit(Receipt $receipt)

@@ -163,7 +163,36 @@
                                         class="w-52 max-w-full object-contain"
                                     >
                                 </div>
+
+                                {{-- UPI ID COPY SECTION --}}
+                                <div class="mx-auto mt-4 max-w-md rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-left">
+                                    <p class="text-xs font-semibold text-slate-500">
+                                        UPI ID / UPI முகவரி
+                                    </p>
+
+                                    <div class="mt-2 flex items-center gap-2">
+            <span
+                id="upiId"
+                class="min-w-0 flex-1 break-all text-sm font-bold text-slate-800"
+            >9944169991@sbi</span>
+
+                                        <button
+                                            type="button"
+                                            onclick="copyUpiId()"
+                                            class="inline-flex shrink-0 items-center gap-2 rounded-lg bg-emerald-700 px-3 py-2 text-xs font-semibold text-white transition hover:bg-emerald-800"
+                                        >
+                                            <i class="fa-regular fa-copy" id="upiCopyIcon"></i>
+                                            <span id="upiCopyText">Copy</span>
+                                        </button>
+                                    </div>
+
+                                    <p id="upiCopyMessage" class="mt-2 hidden text-xs font-medium text-emerald-700">
+                                        UPI ID copied successfully!
+                                    </p>
+                                </div>
                             </div>
+
+
 
                             {{-- PAYMENT INSTRUCTIONS --}}
                             <div class="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-4">
@@ -275,6 +304,57 @@
 
         </div>
     </div>
+
+    <script>
+
+        function copyUpiId() {
+            const upiId = document.getElementById('upiId').textContent.trim();
+            const copyText = document.getElementById('upiCopyText');
+            const copyIcon = document.getElementById('upiCopyIcon');
+            const message = document.getElementById('upiCopyMessage');
+
+            function showCopied() {
+                copyText.textContent = 'Copied!';
+                copyIcon.className = 'fa-solid fa-check';
+                message.classList.remove('hidden');
+
+                setTimeout(() => {
+                    copyText.textContent = 'Copy';
+                    copyIcon.className = 'fa-regular fa-copy';
+                    message.classList.add('hidden');
+                }, 2000);
+            }
+
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(upiId)
+                    .then(showCopied)
+                    .catch(() => fallbackCopy(upiId, showCopied));
+            } else {
+                fallbackCopy(upiId, showCopied);
+            }
+        }
+
+        function fallbackCopy(text, onSuccess) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+
+            document.body.appendChild(textarea);
+            textarea.select();
+
+            try {
+                if (document.execCommand('copy')) {
+                    onSuccess();
+                } else {
+                    alert('Unable to copy. Please copy the UPI ID manually: ' + text);
+                }
+            } finally {
+                textarea.remove();
+            }
+        }
+
+    </script>
 
     {{-- JAVASCRIPT --}}
     <script>

@@ -180,43 +180,29 @@
 
                             {{-- Mobile --}}
                             <div>
-
                                 <label for="mobile"
-                                       class="block text-sm
-                                          font-medium
-                                          text-slate-700 mb-1.5">
-
+                                       class="block text-sm font-medium text-slate-700 mb-1.5">
                                     Mobile
-
                                 </label>
 
-
-                                <input type="text"
-                                       id="mobile"
-                                       name="mobile"
-                                       value="{{ old('mobile') }}"
-                                       placeholder="Enter mobile number"
-                                       class="w-full h-11
-                                          px-3.5
-                                          rounded-lg
-                                          border border-slate-200
-                                          bg-white
-                                          text-sm text-slate-700
-                                          placeholder:text-slate-400
-                                          outline-none
-                                          focus:border-violet-400
-                                          focus:ring-2
-                                          focus:ring-violet-100
-                                          transition">
+                                <input
+                                    type="text"
+                                    id="mobile"
+                                    name="mobile"
+                                    value="{{ old('mobile') }}"
+                                    placeholder="Enter 10-digit mobile number"
+                                    inputmode="numeric"
+                                    pattern="[0-9]{10}"
+                                    minlength="10"
+                                    maxlength="10"
+                                    title="Please enter exactly 10 digits."
+                                    oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)"
+                                    class="w-full h-11 px-3.5 rounded-lg border border-slate-200 bg-white text-sm text-slate-700 placeholder:text-slate-400 outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-100 transition"
+                                >
 
                                 @error('mobile')
-
-                                <p class="text-sm text-red-600 mt-1.5">
-                                    {{ $message }}
-                                </p>
-
+                                <p class="text-sm text-red-600 mt-1.5">{{ $message }}</p>
                                 @enderror
-
                             </div>
 
 
