@@ -152,654 +152,713 @@ class ReceiptController extends Controller
     }
 
 
-    public function downloadPdf(Receipt $receipt)
-    {
-        $receipt->load('receiptDetails.category.parent');
 
-        if (!extension_loaded('gd') || !function_exists('imagettftext')) {
-            abort(
-                500,
-                'PHP GD with FreeType support is required. Enable the GD extension.'
-            );
-        }
+public function downloadPdf(Receipt $receipt)
+{
+    $receipt->load([
+        'city',
+        'receiptDetails.category.parent',
+    ]);
 
-        $font = resource_path(
-            'fonts/NotoSansTamil-Regular.ttf'
+    if (!extension_loaded('gd') || !function_exists('imagettftext')) {
+        abort(
+            500,
+            'PHP GD with FreeType support is required. Enable the GD extension.'
+        );
+    }
+
+    $font = resource_path('fonts/NotoSansTamil-Regular.ttf');
+    $bold = resource_path('fonts/NotoSansTamil-Bold.ttf');
+
+    if (!is_file($font) || !is_file($bold)) {
+        abort(500, 'Noto Sans Tamil font files were not found.');
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | IMAGE SIZE - HALF A4
+    |--------------------------------------------------------------------------
+    */
+
+    $w = 1600;
+    $h = 1131;
+
+    $im = imagecreatetruecolor($w, $h);
+
+    imageantialias($im, true);
+
+    /*
+    |--------------------------------------------------------------------------
+    | COLORS
+    |--------------------------------------------------------------------------
+    */
+
+    $white = imagecolorallocate($im, 255, 255, 255);
+    $ink = imagecolorallocate($im, 24, 33, 61);
+    $muted = imagecolorallocate($im, 100, 116, 139);
+    $softMuted = imagecolorallocate($im, 148, 163, 184);
+    $line = imagecolorallocate($im, 219, 226, 234);
+    $purple = imagecolorallocate($im, 109, 40, 217);
+    $lightPurple = imagecolorallocate($im, 247, 245, 255);
+    $totalPurple = imagecolorallocate($im, 245, 243, 255);
+
+    imagefill($im, 0, 0, $white);
+
+    /*
+    |--------------------------------------------------------------------------
+    | TEXT HELPER
+    |--------------------------------------------------------------------------
+    */
+
+    $text = function (
+        string $value,
+        int $x,
+        int $baseline,
+        int $size = 19,
+        bool $isBold = false,
+        ?int $color = null
+    ) use ($im, $font, $bold, $ink): void {
+        imagettftext(
+            $im,
+            $size,
+            0,
+            $x,
+            $baseline,
+            $color ?? $ink,
+            $isBold ? $bold : $font,
+            $value
+        );
+    };
+
+    /*
+    |--------------------------------------------------------------------------
+    | RIGHT-ALIGNED TEXT
+    |--------------------------------------------------------------------------
+    */
+
+    $rightText = function (
+        string $value,
+        int $rightX,
+        int $baseline,
+        int $size = 19,
+        bool $isBold = false,
+        ?int $color = null
+    ) use ($im, $font, $bold, $ink): void {
+        $file = $isBold ? $bold : $font;
+
+        $box = imagettfbbox(
+            $size,
+            0,
+            $file,
+            $value
         );
 
-        $bold = resource_path(
-            'fonts/NotoSansTamil-Bold.ttf'
+        $width = $box[2] - $box[0];
+
+        imagettftext(
+            $im,
+            $size,
+            0,
+            $rightX - $width,
+            $baseline,
+            $color ?? $ink,
+            $file,
+            $value
         );
+    };
 
-        if (!is_file($font) || !is_file($bold)) {
-            abort(500, 'DomPDF DejaVu font files were not found.');
-        }
+    /*
+    |--------------------------------------------------------------------------
+    | TEXT WRAP
+    |--------------------------------------------------------------------------
+    */
 
-        /*
-        |--------------------------------------------------------------------------
-        | IMAGE SIZE - HALF A4
-        |--------------------------------------------------------------------------
-        */
+    $wrap = function (
+        string $value,
+        int $maxWidth,
+        int $size = 18,
+        bool $isBold = false
+    ) use ($font, $bold): array {
+        $file = $isBold ? $bold : $font;
 
-        $w = 1600;
-        $h = 1131;
+        $words = preg_split('/\s+/u', trim($value)) ?: [];
+        $lines = [''];
 
-        $im = imagecreatetruecolor($w, $h);
+        foreach ($words as $word) {
+            $index = count($lines) - 1;
 
-        imageantialias($im, true);
-
-        /*
-        |--------------------------------------------------------------------------
-        | COLORS
-        |--------------------------------------------------------------------------
-        */
-
-        $white = imagecolorallocate($im, 255, 255, 255);
-        $ink = imagecolorallocate($im, 24, 33, 61);
-        $muted = imagecolorallocate($im, 100, 116, 139);
-        $softMuted = imagecolorallocate($im, 148, 163, 184);
-        $line = imagecolorallocate($im, 219, 226, 234);
-        $purple = imagecolorallocate($im, 109, 40, 217);
-        $lightPurple = imagecolorallocate($im, 247, 245, 255);
-        $totalPurple = imagecolorallocate($im, 245, 243, 255);
-
-        imagefill($im, 0, 0, $white);
-
-        /*
-        |--------------------------------------------------------------------------
-        | TEXT HELPER
-        |--------------------------------------------------------------------------
-        */
-
-        $text = function (
-            string $value,
-            int $x,
-            int $baseline,
-            int $size = 19,
-            bool $isBold = false,
-            ?int $color = null
-        ) use ($im, $font, $bold, $ink): void {
-
-            imagettftext(
-                $im,
-                $size,
-                0,
-                $x,
-                $baseline,
-                $color ?? $ink,
-                $isBold ? $bold : $font,
-                $value
-            );
-        };
-
-        /*
-        |--------------------------------------------------------------------------
-        | RIGHT-ALIGNED TEXT
-        |--------------------------------------------------------------------------
-        */
-
-        $rightText = function (
-            string $value,
-            int $rightX,
-            int $baseline,
-            int $size = 19,
-            bool $isBold = false,
-            ?int $color = null
-        ) use ($im, $font, $bold, $ink): void {
-
-            $file = $isBold ? $bold : $font;
+            $candidate = trim($lines[$index] . ' ' . $word);
 
             $box = imagettfbbox(
                 $size,
                 0,
                 $file,
-                $value
+                $candidate
             );
 
             $width = $box[2] - $box[0];
 
-            imagettftext(
-                $im,
-                $size,
-                0,
-                $rightX - $width,
-                $baseline,
-                $color ?? $ink,
-                $file,
-                $value
-            );
-        };
-
-        /*
-        |--------------------------------------------------------------------------
-        | TEXT WRAP
-        |--------------------------------------------------------------------------
-        */
-
-        $wrap = function (
-            string $value,
-            int $maxWidth,
-            int $size = 18,
-            bool $isBold = false
-        ) use ($font, $bold): array {
-
-            $file = $isBold ? $bold : $font;
-
-            $words = preg_split('/\s+/u', trim($value)) ?: [];
-            $lines = [''];
-
-            foreach ($words as $word) {
-                $index = count($lines) - 1;
-
-                $candidate = trim($lines[$index] . ' ' . $word);
-
-                $box = imagettfbbox(
-                    $size,
-                    0,
-                    $file,
-                    $candidate
-                );
-
-                $width = $box[2] - $box[0];
-
-                if ($width > $maxWidth && $lines[$index] !== '') {
-                    $lines[] = $word;
-                } else {
-                    $lines[$index] = $candidate;
-                }
+            if ($width > $maxWidth && $lines[$index] !== '') {
+                $lines[] = $word;
+            } else {
+                $lines[$index] = $candidate;
             }
+        }
 
-            return $lines;
-        };
+        return $lines;
+    };
 
-        /*
-        |--------------------------------------------------------------------------
-        | CONTENT WIDTH
-        |--------------------------------------------------------------------------
-        */
+    /*
+    |--------------------------------------------------------------------------
+    | CONTENT WIDTH
+    |--------------------------------------------------------------------------
+    */
 
-        $left = 65;
-        $rightEdge = $w - 65;
-        $contentWidth = $rightEdge - $left;
+    $left = 65;
+    $rightEdge = $w - 65;
+    $contentWidth = $rightEdge - $left;
 
-        /*
-        |--------------------------------------------------------------------------
-        | HEADER
-        |--------------------------------------------------------------------------
-        */
+    /*
+    |--------------------------------------------------------------------------
+    | HEADER - LOGO + TEMPLE RECEIPT
+    |--------------------------------------------------------------------------
+    */
 
-        $text(
-            'TEMPLE RECEIPT',
-            $left,
-            102,
-            32,
-            true,
-            $purple
-        );
+    $logoPath = public_path('images/Logo.png');
 
-        $rightText(
-            'Receipt No: ' . $receipt->receipt_number,
-            $rightEdge,
-            75,
-            18,
-            true,
-            $ink
-        );
+    if (file_exists($logoPath)) {
+        $logo = @imagecreatefrompng($logoPath);
 
-        $rightText(
-            'Date: ' . (
+        if ($logo !== false) {
+            $logoWidth =100;
+            $logoHeight = 100;
+
+            imagealphablending($im, true);
+
+            imagecopyresampled(
+                $im,
+                $logo,
+                $left,
+                40,
+                0,
+                0,
+                $logoWidth,
+                $logoHeight,
+                imagesx($logo),
+                imagesy($logo)
+            );
+
+            imagedestroy($logo);
+        }
+    }
+
+    $text(
+        'SRI VEERA BAIYAMMAL PUBLIC TRUST',
+        $left + 120,
+        102,
+        32,
+        true,
+        $purple
+    );
+
+    $rightText(
+        'Receipt No: ' . $receipt->receipt_number,
+        $rightEdge,
+        75,
+        18,
+        true,
+        $ink
+    );
+
+    $rightText(
+        'Date: ' . (
             $receipt->date
                 ? $receipt->date->format('d M Y')
                 : '-'
-            ),
-            $rightEdge,
-            108,
-            17,
-            false,
-            $muted
-        );
+        ),
+        $rightEdge,
+        108,
+        17,
+        false,
+        $muted
+    );
 
-        /*
-        |--------------------------------------------------------------------------
-        | PURPLE DIVIDER
-        |--------------------------------------------------------------------------
-        */
+    /*
+    |--------------------------------------------------------------------------
+    | PURPLE DIVIDER
+    |--------------------------------------------------------------------------
+    */
 
-        imagefilledrectangle(
-            $im,
-            $left,
-            147,
-            $rightEdge,
-            150,
-            $purple
-        );
+    imagefilledrectangle(
+        $im,
+        $left,
+        147,
+        $rightEdge,
+        150,
+        $purple
+    );
 
-        /*
-        |--------------------------------------------------------------------------
-        | DONOR INFORMATION
-        |--------------------------------------------------------------------------
-        */
+    /*
+    |--------------------------------------------------------------------------
+    | DONOR INFORMATION - NAME, MOBILE, ADDRESS, CITY
+    |--------------------------------------------------------------------------
+    */
 
+    $text(
+        'DONOR INFORMATION',
+        $left,
+        187,
+        17,
+        true,
+        $muted
+    );
+
+    $donorTop = 205;
+    $donorBottom = 296;
+
+    imagerectangle(
+        $im,
+        $left,
+        $donorTop,
+        $rightEdge,
+        $donorBottom,
+        $line
+    );
+
+    // Four columns: Name 25%, Mobile 20%, Address 35%, City 20%.
+    $nameEnd = $left + (int) ($contentWidth * 0.25);
+    $mobileEnd = $nameEnd + (int) ($contentWidth * 0.20);
+    $addressEnd = $mobileEnd + (int) ($contentWidth * 0.35);
+
+    imageline(
+        $im,
+        $nameEnd,
+        $donorTop,
+        $nameEnd,
+        $donorBottom,
+        $line
+    );
+
+    imageline(
+        $im,
+        $mobileEnd,
+        $donorTop,
+        $mobileEnd,
+        $donorBottom,
+        $line
+    );
+
+    imageline(
+        $im,
+        $addressEnd,
+        $donorTop,
+        $addressEnd,
+        $donorBottom,
+        $line
+    );
+
+    // Column labels.
+    $text('NAME', $left + 17, 233, 12, true, $softMuted);
+    $text('MOBILE', $nameEnd + 17, 233, 12, true, $softMuted);
+    $text('ADDRESS', $mobileEnd + 17, 233, 12, true, $softMuted);
+    $text('CITY', $addressEnd + 17, 233, 12, true, $softMuted);
+
+    // Name.
+    $nameLines = $wrap(
+        (string) ($receipt->name ?: '-'),
+        $nameEnd - $left - 34,
+        18,
+        true
+    );
+
+    foreach (array_slice($nameLines, 0, 2) as $i => $lineText) {
         $text(
-            'DONOR INFORMATION',
-            $left,
-            187,
-            17,
-            true,
-            $muted
-        );
-
-        $donorTop = 205;
-        $donorBottom = 296;
-
-        imagerectangle(
-            $im,
-            $left,
-            $donorTop,
-            $rightEdge,
-            $donorBottom,
-            $line
-        );
-
-        $nameEnd = $left + (int) ($contentWidth * 0.30);
-        $mobileEnd = $nameEnd + (int) ($contentWidth * 0.25);
-
-        imageline(
-            $im,
-            $nameEnd,
-            $donorTop,
-            $nameEnd,
-            $donorBottom,
-            $line
-        );
-
-        imageline(
-            $im,
-            $mobileEnd,
-            $donorTop,
-            $mobileEnd,
-            $donorBottom,
-            $line
-        );
-
-        $text('NAME', $left + 17, 233, 12, true, $softMuted);
-        $text('MOBILE', $nameEnd + 17, 233, 12, true, $softMuted);
-        $text('ADDRESS', $mobileEnd + 17, 233, 12, true, $softMuted);
-
-        $nameLines = $wrap(
-            (string) $receipt->name,
-            $nameEnd - $left - 34,
-            18,
-            true
-        );
-
-        foreach (array_slice($nameLines, 0, 2) as $i => $lineText) {
-            $text(
-                $lineText,
-                $left + 17,
-                264 + ($i * 22),
-                18,
-                true,
-                $ink
-            );
-        }
-
-        $text(
-            (string) ($receipt->mobile ?: '-'),
-            $nameEnd + 17,
-            264,
+            $lineText,
+            $left + 17,
+            264 + ($i * 22),
             18,
             true,
             $ink
         );
+    }
 
-        $addressLines = $wrap(
-            (string) ($receipt->address ?: '-'),
-            $rightEdge - $mobileEnd - 34,
-            17,
-            true
-        );
+    // Mobile.
+    $text(
+        (string) ($receipt->mobile ?: '-'),
+        $nameEnd + 17,
+        264,
+        18,
+        true,
+        $ink
+    );
 
-        foreach (array_slice($addressLines, 0, 2) as $i => $lineText) {
-            $text(
-                $lineText,
-                $mobileEnd + 17,
-                264 + ($i * 21),
-                17,
-                true,
-                $ink
-            );
-        }
+    // Address.
+    $addressLines = $wrap(
+        (string) ($receipt->address ?: '-'),
+        $addressEnd - $mobileEnd - 34,
+        17,
+        true
+    );
 
-        /*
-        |--------------------------------------------------------------------------
-        | DONATION DETAILS
-        |--------------------------------------------------------------------------
-        */
-
+    foreach (array_slice($addressLines, 0, 2) as $i => $lineText) {
         $text(
-            'DONATION DETAILS',
-            $left,
-            337,
+            $lineText,
+            $mobileEnd + 17,
+            264 + ($i * 21),
             17,
             true,
-            $muted
+            $ink
         );
+    }
 
-        $tableTop = 354;
-        $headerBottom = 405;
-        $rowHeight = 60;
+    // City.
+    $cityName = (string) ($receipt->city?->name ?? '-');
 
-        imagefilledrectangle(
+    $cityLines = $wrap(
+        $cityName,
+        $rightEdge - $addressEnd - 24,
+        16,
+        true
+    );
+
+    foreach (array_slice($cityLines, 0, 2) as $i => $lineText) {
+        $text(
+            $lineText,
+            $addressEnd + 17,
+            264 + ($i * 21),
+            16,
+            true,
+            $ink
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | DONATION DETAILS
+    |--------------------------------------------------------------------------
+    */
+
+    $text(
+        'DONATION DETAILS',
+        $left,
+        337,
+        17,
+        true,
+        $muted
+    );
+
+    $tableTop = 354;
+    $headerBottom = 405;
+    $rowHeight = 60;
+
+    imagefilledrectangle(
+        $im,
+        $left,
+        $tableTop,
+        $rightEdge,
+        $headerBottom,
+        $lightPurple
+    );
+
+    imagerectangle(
+        $im,
+        $left,
+        $tableTop,
+        $rightEdge,
+        $headerBottom,
+        $line
+    );
+
+    $amountStart = $rightEdge - 370;
+
+    $text('#', $left + 20, 388, 14, true, $muted);
+    $text('CATEGORY', $left + 145, 388, 14, true, $muted);
+
+    $rightText(
+        'AMOUNT',
+        $rightEdge - 18,
+        388,
+        14,
+        true,
+        $muted
+    );
+
+    /*
+    |--------------------------------------------------------------------------
+    | DONATION ROWS
+    |--------------------------------------------------------------------------
+    */
+
+    $details = $receipt->receiptDetails;
+
+    if ($details->count() > 8) {
+        imagedestroy($im);
+
+        abort(
+            422,
+            'This half-A4 receipt supports up to 8 donation items.'
+        );
+    }
+
+    $rowY = $headerBottom;
+    $total = 0;
+
+    foreach ($details as $index => $detail) {
+        $total += (float) $detail->amount;
+
+        $nextY = $rowY + $rowHeight;
+
+        imageline(
             $im,
             $left,
-            $tableTop,
+            $nextY,
             $rightEdge,
-            $headerBottom,
-            $lightPurple
-        );
-
-        imagerectangle(
-            $im,
-            $left,
-            $tableTop,
-            $rightEdge,
-            $headerBottom,
+            $nextY,
             $line
         );
 
-        $amountStart = $rightEdge - 370;
-
-        $text('#', $left + 20, 388, 14, true, $muted);
-        $text('CATEGORY', $left + 145, 388, 14, true, $muted);
-
-        $rightText(
-            'AMOUNT',
-            $rightEdge - 18,
-            388,
-            14,
-            true,
-            $muted
+        // Item number.
+        $text(
+            (string) ($index + 1),
+            $left + 20,
+            $rowY + 37,
+            17,
+            false,
+            $ink
         );
 
-        /*
-        |--------------------------------------------------------------------------
-        | DONATION ROWS
-        |--------------------------------------------------------------------------
-        */
+        // Category and parent category.
+        $categoryModel = $detail->category;
+        $category = (string) ($categoryModel?->name ?? 'Category');
+        $parentCategory = $categoryModel?->parent;
 
-        $details = $receipt->receiptDetails;
+        if ($parentCategory) {
+            $parentName = (string) $parentCategory->name;
 
-        if ($details->count() > 8) {
-            imagedestroy($im);
+            $parentSize = 12;
+            $parentMaxWidth = $amountStart - $left - 180;
 
-            abort(
-                422,
-                'This half-A4 receipt supports up to 8 donation items.'
-            );
-        }
-
-        $rowY = $headerBottom;
-        $total = 0;
-
-        foreach ($details as $index => $detail) {
-            $total += (float) $detail->amount;
-
-            $nextY = $rowY + $rowHeight;
-
-            imageline(
-                $im,
-                $left,
-                $nextY,
-                $rightEdge,
-                $nextY,
-                $line
-            );
-
-            // Item number
-            $text(
-                (string) ($index + 1),
-                $left + 20,
-                $rowY + 37,
-                17,
-                false,
-                $ink
-            );
-
-            // Category and parent category
-            $categoryModel = $detail->category;
-            $category = (string) ($categoryModel?->name ?? 'Category');
-            $parentCategory = $categoryModel?->parent;
-
-            if ($parentCategory) {
-                // Parent category label
-                $parentName = (string) $parentCategory->name;
-
-                $parentSize = 12;
-                $parentMaxWidth = $amountStart - $left - 180;
-
-                while ($parentSize > 9) {
-                    $box = imagettfbbox(
-                        $parentSize,
-                        0,
-                        $font,
-                        $parentName
-                    );
-
-                    if (($box[2] - $box[0]) <= $parentMaxWidth) {
-                        break;
-                    }
-
-                    $parentSize--;
-                }
-
-                $text(
-                    $parentName,
-                    $left + 145,
-                    $rowY + 22,
-                    $parentSize,
-                    false,
-                    $muted
-                );
-
-                // Subcategory arrow
-                $text(
-                    '>',
-                    $left + 145,
-                    $rowY + 44,
-                    14,
-                    true,
-                    $purple
-                );
-
-                $categoryX = $left + 165;
-                $categoryBaseline = $rowY + 44;
-                $categorySize = 15;
-            } else {
-                // Standalone category
-                $categoryX = $left + 145;
-                $categoryBaseline = $rowY + 37;
-                $categorySize = 17;
-            }
-
-            $categoryMaxWidth = $amountStart - $categoryX - 25;
-
-            while ($categorySize > 10) {
+            while ($parentSize > 9) {
                 $box = imagettfbbox(
-                    $categorySize,
+                    $parentSize,
                     0,
                     $font,
-                    $category
+                    $parentName
                 );
 
-                if (($box[2] - $box[0]) <= $categoryMaxWidth) {
+                if (($box[2] - $box[0]) <= $parentMaxWidth) {
                     break;
                 }
 
-                $categorySize--;
+                $parentSize--;
             }
 
             $text(
-                $category,
-                $categoryX,
-                $categoryBaseline,
-                $categorySize,
+                $parentName,
+                $left + 145,
+                $rowY + 22,
+                $parentSize,
                 false,
-                $ink
+                $muted
             );
 
-            // Amount
-            $rightText(
-                '₹' . number_format((float) $detail->amount, 2),
-                $rightEdge - 18,
-                $rowY + 37,
-                17,
+            // Subcategory arrow.
+            $text(
+                '>',
+                $left + 145,
+                $rowY + 44,
+                14,
                 true,
-                $ink
+                $purple
             );
 
-            $rowY = $nextY;
+            $categoryX = $left + 165;
+            $categoryBaseline = $rowY + 44;
+            $categorySize = 15;
+        } else {
+            $categoryX = $left + 145;
+            $categoryBaseline = $rowY + 37;
+            $categorySize = 17;
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | TOTAL
-        |--------------------------------------------------------------------------
-        */
+        $categoryMaxWidth = $amountStart - $categoryX - 25;
 
-        $totalHeight = 55;
+        while ($categorySize > 10) {
+            $box = imagettfbbox(
+                $categorySize,
+                0,
+                $font,
+                $category
+            );
 
-        imagefilledrectangle(
-            $im,
-            $left,
-            $rowY,
-            $rightEdge,
-            $rowY + $totalHeight,
-            $totalPurple
+            if (($box[2] - $box[0]) <= $categoryMaxWidth) {
+                break;
+            }
+
+            $categorySize--;
+        }
+
+        $text(
+            $category,
+            $categoryX,
+            $categoryBaseline,
+            $categorySize,
+            false,
+            $ink
         );
 
-        imagerectangle(
-            $im,
-            $left,
-            $rowY,
-            $rightEdge,
-            $rowY + $totalHeight,
-            $line
-        );
-
+        // Amount.
         $rightText(
-            'Total Amount',
-            $amountStart - 20,
-            $rowY + 35,
+            '₹' . number_format((float) $detail->amount, 2),
+            $rightEdge - 18,
+            $rowY + 37,
             17,
             true,
-            $muted
+            $ink
         );
 
-        $rightText(
-            '₹' . number_format($total, 2),
-            $rightEdge - 18,
-            $rowY + 36,
-            23,
-            true,
-            $purple
-        );
-
-        /*
-        |--------------------------------------------------------------------------
-        | SIGNATURES
-        |--------------------------------------------------------------------------
-        */
-
-        $signatureY = 1010;
-
-        imageline(
-            $im,
-            130,
-            $signatureY,
-            570,
-            $signatureY,
-            $muted
-        );
-
-        imageline(
-            $im,
-            1030,
-            $signatureY,
-            1470,
-            $signatureY,
-            $muted
-        );
-
-        $text(
-            'Donor Signature',
-            274,
-            $signatureY + 32,
-            15,
-            true,
-            $muted
-        );
-
-        $text(
-            'Authorized Signature',
-            1100,
-            $signatureY + 32,
-            15,
-            true,
-            $muted
-        );
-
-        /*
-        |--------------------------------------------------------------------------
-        | FOOTER
-        |--------------------------------------------------------------------------
-        */
-
-        $text(
-            'Thank you for your contribution.',
-            605,
-            1085,
-            13,
-            false,
-            $muted
-        );
-
-        /*
-        |--------------------------------------------------------------------------
-        | IMAGE TO PNG
-        |--------------------------------------------------------------------------
-        */
-
-        ob_start();
-
-        imagepng($im, null, 6);
-
-        $png = ob_get_clean();
-
-        imagedestroy($im);
-
-        $image = 'data:image/png;base64,' . base64_encode($png);
-
-        /*
-        |--------------------------------------------------------------------------
-        | HALF-A4 PDF
-        |--------------------------------------------------------------------------
-        */
-
-        $pdf = Pdf::loadView(
-            'receipts.pdf',
-            compact('image')
-        )->setPaper([
-            0,
-            0,
-            595.2756,
-            420.9449
-        ]);
-
-        return $pdf->download(
-            'receipt-' . $receipt->receipt_number . '.pdf'
-        );
+        $rowY = $nextY;
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | TOTAL
+    |--------------------------------------------------------------------------
+    */
+
+    $totalHeight = 55;
+
+    imagefilledrectangle(
+        $im,
+        $left,
+        $rowY,
+        $rightEdge,
+        $rowY + $totalHeight,
+        $totalPurple
+    );
+
+    imagerectangle(
+        $im,
+        $left,
+        $rowY,
+        $rightEdge,
+        $rowY + $totalHeight,
+        $line
+    );
+
+    $rightText(
+        'Total Amount',
+        $amountStart - 20,
+        $rowY + 35,
+        17,
+        true,
+        $muted
+    );
+
+    $rightText(
+        '₹' . number_format($total, 2),
+        $rightEdge - 18,
+        $rowY + 36,
+        23,
+        true,
+        $purple
+    );
+
+    /*
+    |--------------------------------------------------------------------------
+    | SIGNATURES
+    |--------------------------------------------------------------------------
+    */
+
+    $signatureY = 1010;
+
+    imageline(
+        $im,
+        130,
+        $signatureY,
+        570,
+        $signatureY,
+        $muted
+    );
+
+    imageline(
+        $im,
+        1030,
+        $signatureY,
+        1470,
+        $signatureY,
+        $muted
+    );
+
+    $text(
+        'Donor Signature',
+        274,
+        $signatureY + 32,
+        15,
+        true,
+        $muted
+    );
+
+    $text(
+        'Authorized Signature',
+        1100,
+        $signatureY + 32,
+        15,
+        true,
+        $muted
+    );
+
+    /*
+    |--------------------------------------------------------------------------
+    | FOOTER
+    |--------------------------------------------------------------------------
+    */
+
+    $text(
+        'Thank you for your contribution.',
+        605,
+        1085,
+        13,
+        false,
+        $muted
+    );
+
+    /*
+    |--------------------------------------------------------------------------
+    | IMAGE TO PNG
+    |--------------------------------------------------------------------------
+    */
+
+    ob_start();
+
+    imagepng($im, null, 6);
+
+    $png = ob_get_clean();
+
+    imagedestroy($im);
+
+    $image = 'data:image/png;base64,' . base64_encode($png);
+
+    /*
+    |--------------------------------------------------------------------------
+    | HALF-A4 PDF
+    |--------------------------------------------------------------------------
+    */
+
+    $pdf = Pdf::loadView(
+        'receipts.pdf',
+        compact('image')
+    )->setPaper([
+        0,
+        0,
+        595.2756,
+        420.9449,
+    ]);
+
+    return $pdf->download(
+        'receipt-' . $receipt->receipt_number . '.pdf'
+    );
+}
 
 
     public function edit(Receipt $receipt)
