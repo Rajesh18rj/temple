@@ -72,7 +72,7 @@
             margin: 2mm 0 1.5mm;
             color: #64748b;
             font-size: 8pt;
-            /*font-weight: bold;*/
+            font-weight: normal;
         }
 
         /* Donor information */
@@ -131,12 +131,12 @@
 
         .child-category {
             font-size: 8pt;
-            font-weight: bold;
+
         }
 
         .total-row td {
             background-color: #f5f3ff;
-            font-weight: bold;
+            font-weight: normal;
             border-top: 1px solid #ddd6fe;
         }
 
@@ -158,6 +158,10 @@
             font-size: 7pt;
             color: #64748b;
             font-style: italic;
+        }
+
+        .tamil-text {
+            font-weight: normal;
         }
     </style>
 </head>
@@ -242,9 +246,13 @@
     <thead>
     <tr>
         <th style="width: 8%;">#</th>
-        <th>வகை / CATEGORY</th>
+
+        <th>
+            <span class="tamil-text">வகை</span> / CATEGORY
+        </th>
+
         <th style="width: 25%; text-align: right;">
-            தொகை / AMOUNT
+            <span class="tamil-text">தொகை</span> / AMOUNT
         </th>
     </tr>
     </thead>
@@ -267,7 +275,7 @@
                     </div>
 
                     <div class="child-category">
-                        &gt; {{ $category?->name ?? 'Category' }}
+                        - {{ $category?->name ?? 'Category' }}
                     </div>
                 @else
                     <div class="child-category">

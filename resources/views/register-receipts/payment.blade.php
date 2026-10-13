@@ -76,20 +76,22 @@
                             @forelse($receipt->receiptDetails as $detail)
                                 <div class="flex items-center justify-between gap-4 border-b border-slate-100 px-4 py-3.5 last:border-b-0">
                                     <div class="min-w-0">
-                                        <p class="text-sm font-medium text-slate-700">
-                                            {{ $detail->category->name }}
-                                        </p>
 
-                                        @if($detail->category->parent)
-                                            <p class="mt-1 text-xs text-slate-400">
+                                        @if($detail->category?->parent)
+                                            <p class="text-xs text-slate-400">
                                                 {{ $detail->category->parent->name }}
                                             </p>
                                         @endif
+
+                                        <p class="text-sm font-medium text-slate-700">
+                                            {{ $detail->category?->name ?? 'Unknown Category' }}
+                                        </p>
+
                                     </div>
 
                                     <span class="shrink-0 text-sm font-semibold text-slate-800">
-                                    ₹{{ number_format($detail->amount, 2) }}
-                                </span>
+            ₹{{ number_format($detail->amount, 2) }}
+        </span>
                                 </div>
                             @empty
                                 <div class="p-4 text-sm text-slate-500">

@@ -137,100 +137,40 @@
 {{-- PUBLIC FOOTER --}}
 {{-- ===================================================== --}}
 
-<footer class="border-t border-slate-200 bg-white">
 
+<footer class="border-t border-slate-200 bg-white">
     <div class="mx-auto max-w-7xl px-4 py-7 sm:px-6 lg:px-8">
 
+        <div class="flex flex-col items-center justify-between gap-3 text-center sm:flex-row">
 
-        {{-- TOP FOOTER --}}
-
-        <div class="flex flex-col items-center justify-between
-                    gap-5 text-center sm:flex-row sm:text-left">
-
-
-            {{-- BRAND --}}
-
-            <div class="flex items-center gap-3">
-
-                <div class="flex h-10 w-10 shrink-0 items-center
-                            justify-center overflow-hidden rounded-xl
-                            border border-slate-200 bg-white shadow-sm">
-
-                    <img
-                        src="{{ asset('images/logo.jpg') }}"
-                        alt="Temple Logo"
-                        class="h-full w-full object-contain p-1"
-                    >
-
-                </div>
-
-
-                <div>
-
-                    <p class="text-sm font-semibold text-slate-800">
-                        ஸ்ரீ வீரபையம்மாள் பொது அறக்கட்டளை
-                    </p>
-
-                    <p class="mt-0.5 text-xs text-slate-400">
-                        Contribution & Payment Portal
-                    </p>
-
-                </div>
-
-            </div>
-
-
-            {{-- THANK YOU --}}
-
-            <div class="flex items-center gap-2 text-xs text-slate-400">
-
-                <div class="flex h-8 w-8 items-center justify-center
-                            rounded-full bg-emerald-50 text-emerald-500">
-
-                    <i class="fa-solid fa-heart text-xs"></i>
-
-                </div>
-
-                <span>
-                    Thank you for your contribution
-                </span>
-
-            </div>
-
-        </div>
-
-
-        {{-- DIVIDER --}}
-
-        <div class="my-5 border-t border-slate-100"></div>
-
-
-        {{-- COPYRIGHT --}}
-
-        <div class="flex flex-col items-center justify-between
-                    gap-2 text-center sm:flex-row">
-
+            {{-- COPYRIGHT --}}
             <p class="text-xs text-slate-400">
-
                 © {{ date('Y') }}. All rights reserved.
-
             </p>
 
+            {{-- THANK YOU --}}
+            <div class="flex items-center gap-2 text-xs text-slate-400">
+                <div class="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-50 text-emerald-500">
+                    <i class="fa-solid fa-heart text-xs"></i>
+                </div>
 
-            <div class="flex items-center gap-2 text-[11px] text-slate-400">
-
-                <i class="fa-solid fa-lock text-emerald-500"></i>
-
-                <span>
-                    Secure payment & registration
-                </span>
-
+                <span>Thank you for your contribution</span>
             </div>
 
+            {{-- DEVELOPER CREDIT --}}
+            <p class="text-xs text-slate-400">
+                Designed &amp; Developed by
+                <a href="https://do365tech.com/"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   class="font-semibold text-violet-600 transition hover:text-violet-800 hover:underline">
+                    DO365 Technologies
+                    <i class="fa-solid fa-arrow-up-right-from-square ml-1 text-[9px]"></i>
+                </a>
+            </p>
+
         </div>
-
     </div>
-
 </footer>
 
 

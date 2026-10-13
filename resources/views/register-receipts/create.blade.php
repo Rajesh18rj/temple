@@ -261,6 +261,7 @@
                                                         id="category_{{ $item->id }}"
                                                         class="category-checkbox mt-1 h-5 w-5 shrink-0 cursor-pointer rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
                                                         data-category-id="{{ $item->id }}"
+                                                        data-parent-id="{{ $hasSubcategories ? $category->id : '' }}"
                                                         data-fixed-amount="{{ $item->amount ?? '' }}"
                                                         {{ $isSelected ? 'checked' : '' }}
                                                     >
@@ -490,6 +491,61 @@
             const checkboxes = document.querySelectorAll('.category-checkbox');
             const totalElement = document.getElementById('totalAmount');
 
+            // Allow only one selected subcategory under each main category.
+            // Options belonging to different main categories remain independent.
+            function updateCategorySelection() {
+                const selectedByParent = new Map();
+
+                // Keep the first selected option if old input contains multiple
+                // selections for the same main category.
+                checkboxes.forEach(function (checkbox) {
+                    const parentId = checkbox.dataset.parentId;
+
+                    if (!parentId || !checkbox.checked) {
+                        return;
+                    }
+
+                    if (!selectedByParent.has(parentId)) {
+                        selectedByParent.set(parentId, checkbox);
+                    } else {
+                        checkbox.checked = false;
+
+                        const id = checkbox.dataset.categoryId;
+                        const amountInput = document.getElementById('amount_' + id);
+                        if (amountInput) {
+                            amountInput.value = '';
+                            amountInput.disabled = true;
+                        }
+                    }
+                });
+
+                checkboxes.forEach(function (checkbox) {
+                    const parentId = checkbox.dataset.parentId;
+                    if (!parentId) {
+                        return;
+                    }
+
+                    const selected = selectedByParent.get(parentId);
+                    const shouldDisable = Boolean(selected && selected !== checkbox);
+                    checkbox.disabled = shouldDisable;
+
+                    const option = checkbox.closest('.donation-option');
+                    const amountInput = document.getElementById(
+                        'amount_' + checkbox.dataset.categoryId
+                    );
+
+                    if (amountInput) {
+                        amountInput.disabled = shouldDisable || !checkbox.checked;
+                    }
+
+                    if (option) {
+                        option.classList.toggle('opacity-50', shouldDisable);
+                        option.classList.toggle('bg-emerald-50/50', checkbox.checked);
+                        option.classList.toggle('bg-white', !checkbox.checked);
+                    }
+                });
+            }
+
             function updateTotal() {
                 let total = 0;
 
@@ -601,8 +657,9 @@
                         option.classList.toggle('bg-white', !this.checked);
                     }
 
-                    // Show the error immediately when a variable-amount
-                    // category is selected without an amount.
+                    // Enforce one subcategory per main category, then refresh
+                    // validation and totals without affecting other categories.
+                    updateCategorySelection();
                     validateAmount(this);
                     updateTotal();
                 });
@@ -643,6 +700,7 @@
                 }
             });
 
+            updateCategorySelection();
             updateTotal();
         });
     </script>

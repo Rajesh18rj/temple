@@ -398,23 +398,17 @@
 
                                 <td class="px-5 py-4">
 
-                                    <span class="text-sm
-                                                 font-medium
-                                                 text-slate-800">
+                                    @if($detail->category?->parent)
+                                        <p class="text-xs text-slate-400">
+                                            {{ $detail->category->parent->name }}
+                                        </p>
+                                    @endif
 
-<div class="text-sm font-medium text-slate-800">
-    {{ $detail->category?->name ?? 'Unknown Category' }}
-</div>
-
-@if($detail->category?->parent)
-                                            <p class="mt-1 text-xs text-slate-400">
-        {{ $detail->category->parent->name }}
-    </p>
-                                        @endif
-                                    </span>
+                                    <div class="text-sm font-medium text-slate-800">
+                                        {{ $detail->category?->name ?? 'Unknown Category' }}
+                                    </div>
 
                                 </td>
-
 
                                 <td class="px-5 py-4
                                            text-right">
