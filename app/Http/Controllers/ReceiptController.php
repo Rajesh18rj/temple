@@ -13,6 +13,7 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class ReceiptController extends Controller
 {
+
     public function index(Request $request)
     {
         $query = Receipt::with('city');
@@ -25,6 +26,13 @@ class ReceiptController extends Controller
         // City filter
         if ($request->filled('city_id')) {
             $query->where('city_id', $request->city_id);
+        }
+
+        // Category filter
+        if ($request->filled('category_id')) {
+            $query->whereHas('receiptDetails', function ($detailsQuery) use ($request) {
+                $detailsQuery->where('category_id', $request->category_id);
+            });
         }
 
         // From date
@@ -46,11 +54,15 @@ class ReceiptController extends Controller
             ->orderBy('name')
             ->get();
 
+        $categories = Category::orderBy('name')->get();
+
         return view('receipts.index', compact(
             'receipts',
-            'cities'
+            'cities',
+            'categories'
         ));
     }
+
 
     public function downloadExcel(Request $request)
     {
@@ -73,6 +85,16 @@ class ReceiptController extends Controller
             );
         }
 
+        // Category filter
+        if ($request->filled('category_id')) {
+            $query->whereHas('receiptDetails', function ($detailsQuery) use ($request) {
+                $detailsQuery->where(
+                    'category_id',
+                    $request->category_id
+                );
+            });
+        }
+
         // From date
         if ($request->filled('from_date')) {
             $query->whereDate(
@@ -91,10 +113,17 @@ class ReceiptController extends Controller
             );
         }
 
+
         return Excel::download(
-            new ReceiptsExport($query),
+            new ReceiptsExport(
+                $query,
+                $request->filled('category_id')
+                    ? (int) $request->category_id
+                    : null
+            ),
             'receipts-' . now()->format('Y-m-d') . '.xlsx'
         );
+
     }
 
     public function downloadAllExcel()

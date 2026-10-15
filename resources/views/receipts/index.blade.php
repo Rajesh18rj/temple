@@ -197,238 +197,272 @@
 
 
             {{-- Section Header --}}
-            <div class="px-5 sm:px-6 py-4
-                        border-b border-slate-200">
+            <div class="border-b border-slate-200 bg-white px-5 py-5 sm:px-6">
 
-                <div class="flex flex-col lg:flex-row
-                            lg:items-center lg:justify-between
-                            gap-4">
+                {{-- Title & Result Count --}}
+                <div class="mb-5 flex flex-wrap items-center justify-between gap-3">
 
-                    {{-- Title --}}
                     <div>
+                        <div class="flex items-center gap-2">
+                            <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-violet-50 text-violet-600">
+                                <svg class="h-5 w-5"
+                                     fill="none"
+                                     stroke="currentColor"
+                                     viewBox="0 0 24 24">
+                                    <path stroke-linecap="round"
+                                          stroke-linejoin="round"
+                                          stroke-width="1.8"
+                                          d="M8 7h8m-8 4h8m-8 4h5M6 3h9l4 4v14H6a2 2 0 01-2-2V5a2 2 0 012-2z"/>
+                                </svg>
+                            </div>
 
-                        <h2 class="text-base font-semibold text-slate-800">
-                            Receipt List
-                        </h2>
-
-                        <p class="text-sm text-slate-500 mt-0.5">
-                            View and manage temple receipts
-                        </p>
-
+                            <div>
+                                <h2 class="text-base font-semibold text-slate-800">
+                                    Receipt List
+                                </h2>
+                                <p class="mt-0.5 text-xs text-slate-500">
+                                    View and manage temple receipts
+                                </p>
+                            </div>
+                        </div>
                     </div>
 
+                    {{-- Result Count --}}
+                    <div class="inline-flex items-center gap-2 rounded-full border border-violet-100 bg-violet-50 px-3 py-1.5">
+                        <span class="h-2 w-2 rounded-full bg-violet-500"></span>
+                        <span class="text-xs font-semibold text-violet-700">
+                {{ $receipts->total() }} Receipts
+            </span>
+                    </div>
 
-                    {{-- Filters --}}
-                    <form method="GET"
-                          action="{{ route('receipts.index') }}"
-                          class="flex flex-col sm:flex-row
-                                 sm:flex-wrap
-                                 items-stretch sm:items-center
-                                 gap-2">
+                </div>
 
-                        {{-- Mobile Search --}}
-                        <div class="relative">
+                {{-- Filters Card --}}
+                <div class="rounded-xl border border-slate-200 bg-slate-50/60 p-4 sm:p-5">
 
-                            <svg class="absolute left-3 top-1/2
-                                        -translate-y-1/2
-                                        w-4 h-4 text-slate-400"
+                    {{-- Filter Heading --}}
+                    <div class="mb-4 flex items-center justify-between gap-3">
+
+                        <div class="flex items-center gap-2">
+                            <svg class="h-4 w-4 text-slate-500"
                                  fill="none"
                                  stroke="currentColor"
                                  viewBox="0 0 24 24">
-
                                 <path stroke-linecap="round"
                                       stroke-linejoin="round"
                                       stroke-width="1.8"
-                                      d="M21 21l-4.35-4.35
-                                         m2.35-5.65
-                                         a8 8 0 11-16 0
-                                         8 8 0 0116 0z"/>
-
+                                      d="M4 5h16M7 12h10m-7 7h4"/>
                             </svg>
 
-                            <input
-                                type="text"
-                                name="mobile"
-                                value="{{ request('mobile') }}"
-                                placeholder="Mobile number"
-                                class="w-full sm:w-44
-                                       pl-9 pr-3 py-2
-                                       rounded-lg
-                                       border border-slate-200
-                                       bg-white
-                                       text-sm text-slate-700
-                                       placeholder:text-slate-400
-                                       focus:outline-none
-                                       focus:ring-2
-                                       focus:ring-violet-100
-                                       focus:border-violet-400"
-                            >
+                            <h3 class="text-sm font-semibold text-slate-700">
+                                Filters
+                            </h3>
+                        </div>
 
+                        <span class="text-xs text-slate-400">
+                Refine your results
+            </span>
+
+                    </div>
+
+                    {{-- Filters Form --}}
+                    <form method="GET"
+                          action="{{ route('receipts.index') }}"
+                          class="grid grid-cols-1 items-end gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+
+                        {{-- Mobile Search --}}
+                        <div class="min-w-0">
+                            <label for="filter_mobile"
+                                   class="mb-1.5 block text-xs font-medium text-slate-600">
+                                Mobile Number
+                            </label>
+
+                            <div class="relative">
+                                <svg class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400"
+                                     fill="none"
+                                     stroke="currentColor"
+                                     viewBox="0 0 24 24">
+                                    <path stroke-linecap="round"
+                                          stroke-linejoin="round"
+                                          stroke-width="1.8"
+                                          d="M21 21l-4.35-4.35m2.35-5.65a8 8 0 11-16 0 8 8 0 0116 0z"/>
+                                </svg>
+
+                                <input
+                                    id="filter_mobile"
+                                    type="text"
+                                    name="mobile"
+                                    value="{{ request('mobile') }}"
+                                    placeholder="Enter mobile number"
+                                    class="h-10 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-sm text-slate-700 placeholder:text-slate-400 transition duration-150 focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-100">
+                            </div>
+                        </div>
+
+                        {{-- City Filter --}}
+                        <div class="min-w-0">
+                            <label for="filter_city"
+                                   class="mb-1.5 block text-xs font-medium text-slate-600">
+                                City
+                            </label>
+
+                            <select
+                                id="filter_city"
+                                name="city_id"
+                                class="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 transition duration-150 focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-100">
+
+                                <option value="">All Cities</option>
+
+                                @foreach($cities as $city)
+                                    <option value="{{ $city->id }}"
+                                        {{ request('city_id') == $city->id ? 'selected' : '' }}>
+                                        {{ $city->name }}
+                                    </option>
+                                @endforeach
+
+                            </select>
                         </div>
 
 
-                        {{-- City Filter --}}
-                        <select
-                            name="city_id"
-                            class="w-full sm:w-40
-                                   px-3 py-2
-                                   rounded-lg
-                                   border border-slate-200
-                                   bg-white
-                                   text-sm text-slate-700
-                                   focus:outline-none
-                                   focus:ring-2
-                                   focus:ring-violet-100
-                                   focus:border-violet-400">
+                        {{-- Category Filter --}}
 
-                            <option value="">
-                                All Cities
-                            </option>
 
-                            @foreach($cities as $city)
+                        {{-- Category Filter --}}
+                        <div class="min-w-0">
+                            <label for="filter_category"
+                                   class="mb-1.5 block text-xs font-medium text-slate-600">
+                                Category
+                            </label>
 
-                                <option value="{{ $city->id }}"
-                                    {{ request('city_id') == $city->id ? 'selected' : '' }}>
+                            <select
+                                id="filter_category"
+                                name="category_id"
+                                class="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 transition duration-150 focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-100">
 
-                                    {{ $city->name }}
+                                <option value="">All Categories</option>
 
-                                </option>
+                                @php
+                                    $sortedCategories = $categories->sortBy(function ($category) {
+                                        return $category->parent_id
+                                            ? $category->parent->name
+                                            : $category->name;
+                                    })->sortBy(function ($category) {
+                                        return $category->parent_id ? 1 : 0;
+                                    });
+                                @endphp
 
-                            @endforeach
+                                @foreach($sortedCategories as $category)
 
-                        </select>
+                                    {{-- Hide main categories that have subcategories --}}
+                                    @if(!$category->parent_id && !$categories->contains('parent_id', $category->id))
+
+                                        <option value="{{ $category->id }}"
+                                            {{ request('category_id') == $category->id ? 'selected' : '' }}>
+                                            {{ $category->name }}
+                                        </option>
+
+                                    @elseif($category->parent_id)
+
+                                        <option value="{{ $category->id }}"
+                                            {{ request('category_id') == $category->id ? 'selected' : '' }}>
+                                            {{ $category->parent->name }} → {{ $category->name }}
+                                        </option>
+
+                                    @endif
+
+                                @endforeach
+
+                            </select>
+                        </div>
+
 
 
                         {{-- From Date --}}
-                        <div class="relative">
+                        <div class="min-w-0">
+                            <label for="filter_from_date"
+                                   class="mb-1.5 block text-xs font-medium text-slate-600">
+                                From Date
+                            </label>
 
                             <input
+                                id="filter_from_date"
                                 type="date"
                                 name="from_date"
                                 value="{{ request('from_date') }}"
                                 title="From Date"
-                                class="w-full sm:w-36
-                                       px-3 py-2
-                                       rounded-lg
-                                       border border-slate-200
-                                       bg-white
-                                       text-sm text-slate-700
-                                       focus:outline-none
-                                       focus:ring-2
-                                       focus:ring-violet-100
-                                       focus:border-violet-400"
-                            >
-
+                                class="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 transition duration-150 focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-100">
                         </div>
 
-
                         {{-- To Date --}}
-                        <div class="relative">
+                        <div class="min-w-0">
+                            <label for="filter_to_date"
+                                   class="mb-1.5 block text-xs font-medium text-slate-600">
+                                To Date
+                            </label>
 
                             <input
+                                id="filter_to_date"
                                 type="date"
                                 name="to_date"
                                 value="{{ request('to_date') }}"
                                 title="To Date"
-                                class="w-full sm:w-36
-                                       px-3 py-2
-                                       rounded-lg
-                                       border border-slate-200
-                                       bg-white
-                                       text-sm text-slate-700
-                                       focus:outline-none
-                                       focus:ring-2
-                                       focus:ring-violet-100
-                                       focus:border-violet-400"
-                            >
+                                class="h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 transition duration-150 focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-100">
+                        </div>
+
+                        {{-- Action Buttons --}}
+                        <div class="flex min-w-0 items-center gap-2">
+
+                            {{-- Search Button --}}
+                            <button
+                                type="submit"
+                                class="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-lg bg-violet-600 px-4 text-sm font-semibold text-white shadow-sm transition duration-150 hover:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-violet-300 focus:ring-offset-1">
+
+                                <svg class="h-4 w-4"
+                                     fill="none"
+                                     stroke="currentColor"
+                                     viewBox="0 0 24 24">
+                                    <path stroke-linecap="round"
+                                          stroke-linejoin="round"
+                                          stroke-width="2"
+                                          d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"/>
+                                </svg>
+
+                                Search
+                            </button>
+
+                            {{-- Clear Filters --}}
+                            @if(request()->hasAny([
+                                'mobile',
+                                'city_id',
+                                'category_id',
+                                'from_date',
+                                'to_date'
+                            ]))
+                                <a
+                                    href="{{ route('receipts.index') }}"
+                                    title="Clear all filters"
+                                    aria-label="Clear all filters"
+                                    class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition duration-150 hover:border-red-200 hover:bg-red-50 hover:text-red-600">
+
+                                    <svg class="h-4 w-4"
+                                         fill="none"
+                                         stroke="currentColor"
+                                         viewBox="0 0 24 24">
+                                        <path stroke-linecap="round"
+                                              stroke-linejoin="round"
+                                              stroke-width="1.8"
+                                              d="M6 6l12 12M18 6L6 18"/>
+                                    </svg>
+                                </a>
+                            @endif
 
                         </div>
 
-
-                        {{-- Search Button --}}
-                        <button
-                            type="submit"
-                            class="inline-flex items-center justify-center
-                                   gap-1.5
-                                   px-4 py-2
-                                   rounded-lg
-                                   bg-violet-600
-                                   text-white
-                                   text-sm
-                                   font-medium
-                                   hover:bg-violet-700
-                                   transition">
-
-                            <svg class="w-4 h-4"
-                                 fill="none"
-                                 stroke="currentColor"
-                                 viewBox="0 0 24 24">
-
-                                <path stroke-linecap="round"
-                                      stroke-linejoin="round"
-                                      stroke-width="2"
-                                      d="M21 21l-4.35-4.35
-                                         M11 19a8 8 0 100-16
-                                         8 8 0 000 16z"/>
-
-                            </svg>
-
-                            Search
-
-                        </button>
-
-
-                        {{-- Clear Filters --}}
-                        @if(request()->hasAny([
-                            'mobile',
-                            'city_id',
-                            'from_date',
-                            'to_date'
-                        ]))
-
-                            <a href="{{ route('receipts.index') }}"
-                               class="inline-flex items-center justify-center
-                                      px-4 py-2
-                                      rounded-lg
-                                      border border-slate-200
-                                      bg-white
-                                      text-slate-600
-                                      text-sm
-                                      font-medium
-                                      hover:bg-slate-50
-                                      transition">
-
-                                Clear
-
-                            </a>
-
-                        @endif
-
                     </form>
-
-                </div>
-
-
-                {{-- Result Count --}}
-                <div class="mt-3">
-
-                    <span class="inline-flex items-center gap-2
-                                 px-3 py-1.5
-                                 rounded-lg
-                                 bg-slate-50
-                                 border border-slate-200">
-
-                        <span class="w-2 h-2 rounded-full bg-violet-500"></span>
-
-                        <span class="text-xs font-medium text-slate-600">
-                            {{ $receipts->total() }} Receipts
-                        </span>
-
-                    </span>
-
                 </div>
 
             </div>
+
+
 
 
             {{-- Table --}}

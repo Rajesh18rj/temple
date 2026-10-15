@@ -25,21 +25,28 @@ class ReceiptsExport implements
 
     protected $categories;
 
-    public function __construct(?Builder $query = null)
+    public function __construct(?Builder $query = null, ?int $categoryId = null)
     {
         $this->query = $query;
 
-        $this->categories = Category::with('parent')
+        $categoriesQuery = Category::with('parent')
             ->where(function ($query) {
                 $query->whereNotNull('parent_id')
                     ->orWhereDoesntHave('children');
-            })
+            });
+
+        if ($categoryId) {
+            $categoriesQuery->where('id', $categoryId);
+        }
+
+        $this->categories = $categoriesQuery
             ->orderByRaw('COALESCE(parent_id, id) ASC')
             ->orderByRaw('CASE WHEN parent_id IS NULL THEN 0 ELSE 1 END ASC')
             ->orderBy('display_order')
             ->orderBy('name')
             ->get();
     }
+
 
     public function query()
     {
@@ -72,18 +79,18 @@ class ReceiptsExport implements
         foreach ($this->categories as $category) {
             $parentName = $category->parent?->name;
 
-            if ($parentName) {
-                $headings[] = $parentName . ' - ' . $category->name;
-            } else {
-                $headings[] = $category->name;
-            }
+            $headings[] = $parentName
+                ? $parentName . ' - ' . $category->name
+                : $category->name;
         }
 
-        $headings[] = 'Total Amount';
+        // Show Total Amount only when no category filter is applied
+        if (!$this->query || !request()->filled('category_id')) {
+            $headings[] = 'Total Amount';
+        }
 
         return $headings;
     }
-
     public function map($receipt): array
     {
         $row = [
@@ -103,15 +110,16 @@ class ReceiptsExport implements
             $detail = $receipt->receiptDetails
                 ->firstWhere('category_id', $category->id);
 
-            $amount = $detail
-                ? (float) $detail->amount
-                : 0;
+            $amount = $detail ? (float) $detail->amount : 0;
 
             $row[] = $amount;
             $total += $amount;
         }
 
-        $row[] = $total;
+// Include Total Amount only when no category filter is applied
+        if (!request()->filled('category_id')) {
+            $row[] = $total;
+        }
 
         return $row;
     }
@@ -164,23 +172,32 @@ class ReceiptsExport implements
                 }
 
                 // Grand total across all receipt details.
-                $grandTotal = 0;
 
-                foreach ($receipts as $receipt) {
-                    $grandTotal += $receipt->receiptDetails
-                        ->sum(
-                            fn ($detail) => (float) $detail->amount
-                        );
+                /*
+                |--------------------------------------------------------------------------
+                | Grand Total
+                |--------------------------------------------------------------------------
+                | Show the grand total only when no category filter is applied.
+                */
+
+                if (!request()->filled('category_id')) {
+                    $grandTotal = 0;
+
+                    foreach ($receipts as $receipt) {
+                        $grandTotal += $receipt->receiptDetails
+                            ->sum(fn ($detail) => (float) $detail->amount);
+                    }
+
+                    $totalColumn = $this->columnLetter(
+                        $categoryStartColumn + $this->categories->count()
+                    );
+
+                    $sheet->setCellValue(
+                        "{$totalColumn}{$totalRow}",
+                        $grandTotal
+                    );
                 }
 
-                $totalColumn = $this->columnLetter(
-                    $categoryStartColumn + $this->categories->count()
-                );
-
-                $sheet->setCellValue(
-                    "{$totalColumn}{$totalRow}",
-                    $grandTotal
-                );
 
                 // Style the totals row.
                 $highestColumn = $sheet->getHighestColumn();

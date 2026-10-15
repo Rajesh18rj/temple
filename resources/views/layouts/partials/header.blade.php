@@ -13,7 +13,7 @@
                 {{-- Page title block --}}
                 <div class="flex min-w-0 items-start gap-3 sm:gap-4">
                     @php
-                        $pageTitleValue = $pageTitle ?? 'Admin Dashboard';
+                        $pageTitleValue = $pageTitle ?? 'SRI VEERABAIYAMMAL PUBLIC TRUST';
 
                         $pageConfig = match (strtolower($pageTitleValue)) {
                             'dashboard' => [
@@ -59,7 +59,7 @@
                                 'shadow' => 'shadow-rose-200/60',
                                 'badge' => 'ஸ்ரீ வீரபையம்மாள்  துணை',
                                 'badgeClass' => 'border-rose-100 bg-rose-50 text-rose-600',
-                                'subtitle' => 'SRI VEERABAIYAMMAL PUBLIC TRUST',
+                                'subtitle' => 'ADMIN DASHBOARD',
                             ],
                         };
                     @endphp
